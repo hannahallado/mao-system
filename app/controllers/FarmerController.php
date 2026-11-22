@@ -146,6 +146,37 @@ class FarmerController extends Controller
         $this->renderForm('edit', $this->findOr404($id));
     }
 
+    public function delete(string $id): void
+    {
+        // Only agriculturists can delete
+        if (!Auth::isAgriculturist()) {
+            abort(403, 'Unauthorized. Only agriculturists can delete farmers/fisherfolk.');
+        }
+
+        $profile = $this->findOr404($id);
+        $name = Profile::fullName($profile);
+
+        $pdo = Database::connect();
+        $pdo->beginTransaction();
+        try {
+            // Archive livelihoods first
+            FarmingProfile::archive((int) $profile['id']);
+            FisheryProfile::archive((int) $profile['id']);
+            
+            // Archive profile
+            Profile::archive((int) $profile['id']);
+
+            AuditService::log('archive', 'profiles', (int) $profile['id'], null, ['name' => $name], 'Profile deleted by user');
+            $pdo->commit();
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+
+        flash('success', $name . ' has been removed from the registry.');
+        $this->redirect('/farmers');
+    }
+
     public function update(string $id): void
     {
         $profile = $this->findOr404($id);

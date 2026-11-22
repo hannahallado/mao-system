@@ -16,7 +16,8 @@ $pending = ['farms' => 'Farm records', 'fishery' => 'Fishery records', 'livestoc
     'registered ' . format_date($profile['created_at']),
     Ui::statusBadge($profile['status'], Profile::STATUSES[$profile['status']] ?? null)
     . '<a class="btn btn-outline-secondary btn-sm" href="' . e(url('/farmers')) . '">Back to list</a>'
-    . '<a class="btn btn-primary btn-sm" href="' . e(url('/farmers/' . $id . '/edit')) . '">Edit profile</a>') ?>
+    . '<a class="btn btn-primary btn-sm" href="' . e(url('/farmers/' . $id . '/edit')) . '">Edit profile</a>'
+    . (Auth::isAgriculturist() ? ' <form method="post" action="' . e(url('/farmers/' . $id . '/delete')) . '" style="display:inline;" onsubmit="return confirm(\'Remove ' . e(Profile::fullName($profile)) . ' from the registry? This cannot be undone.\')"><input type="hidden" name="_csrf" value="' . e(Csrf::token()) . '"><button type="submit" class="btn btn-outline-danger btn-sm">Remove</button></form>' : '')) ?>
 
 <ul class="nav nav-tabs" role="tablist">
     <?php foreach ($tabs as $key => $label): ?>

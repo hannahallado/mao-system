@@ -31,7 +31,7 @@ $router->post('/farmers/check-duplicate', 'FarmerController@checkDuplicate');   
 $router->get('/farmers/{id}',             'FarmerController@show');
 $router->get('/farmers/{id}/edit',        'FarmerController@edit');
 $router->post('/farmers/{id}',            'FarmerController@update');
-// TODO: POST /farmers/{id}/archive -> archive  |  POST /farmers/{id}/restore -> restore
+$router->post('/farmers/{id}/delete',     'FarmerController@delete');
 
 // --- 2.0 Record Agricultural Resources ---
 $router->get('/farms', 'FarmController@index');
@@ -64,23 +64,29 @@ $router->get('/monitoring/training/create', 'TrainingController@create');
 $router->get('/monitoring/training/{id}', 'TrainingController@show');
 
 // --- 5.0 Administer Agricultural Programs ---
-$router->get('/programs', 'ProgramController@index');
-$router->get('/programs/create', 'ProgramController@create');
-$router->get('/programs/{id}', 'ProgramController@show');
-$router->get('/programs/{id}/edit', 'ProgramController@edit');
-$router->get('/programs/{id}/beneficiaries', 'BeneficiaryController@index');
-$router->get('/assistance', 'AssistanceController@index');
-$router->get('/assistance/create', 'AssistanceController@create');
-$router->get('/assistance/history', 'AssistanceController@history');
+// Programs: only the Municipal Agriculturist creates/edits (access matrix); everyone can view.
+$router->get('/programs',              'ProgramController@index');
+$router->get('/programs/create',       'ProgramController@create', ['roles' => ['agriculturist']]);
+$router->post('/programs',             'ProgramController@store',  ['roles' => ['agriculturist']]);
+$router->get('/programs/{id}',         'ProgramController@show');
+$router->get('/programs/{id}/edit',    'ProgramController@edit',   ['roles' => ['agriculturist']]);
+$router->post('/programs/{id}',        'ProgramController@update', ['roles' => ['agriculturist']]);
+$router->post('/programs/{id}/delete', 'ProgramController@delete', ['roles' => ['agriculturist']]);
+// Beneficiary master list (people come from the registry D1 only)
+$router->get('/beneficiaries/search',                    'BeneficiaryController@search');            // JSON for the picker
+$router->get('/programs/{id}/beneficiaries',             'BeneficiaryController@index');             // redirects to the tab
+$router->get('/programs/{id}/beneficiaries/options',     'BeneficiaryController@options');           // JSON for the distribution form
+$router->post('/programs/{id}/beneficiaries',            'BeneficiaryController@add');
+$router->post('/programs/{id}/beneficiaries/{bid}/status', 'BeneficiaryController@status');
+$router->post('/programs/{id}/beneficiaries/{bid}/remove', 'BeneficiaryController@remove');
+// Distribution + duplicate assistance warning (register fixed paths BEFORE any /assistance/{id})
+$router->get('/assistance',                       'AssistanceController@index');
+$router->get('/assistance/create',                'AssistanceController@create');
+$router->post('/assistance/check-duplicate',      'AssistanceController@checkDuplicate');   // JSON for the warning modal
+$router->post('/assistance',                      'AssistanceController@store');
+$router->get('/assistance/history',               'AssistanceController@history');
 $router->get('/profiles/{id}/assistance-history', 'AssistanceController@profileHistory');
-$router->get('/farmers/{id}/assistance-history', 'AssistanceController@profileHistory');  // Backward compat
-// TODO (POST routes to add when you implement the forms):
-//   POST /programs                          -> store
-//   POST /programs/{id}                     -> update
-//   POST /programs/{id}/beneficiaries       -> BeneficiaryController@add (Farmer ID from D1 only)
-//   GET  /beneficiaries/search              -> BeneficiaryController@search (JSON for the picker)
-//   POST /assistance/check-duplicate  -> checkDuplicate (JSON; DuplicateAssistanceService; register BEFORE any /assistance/{id})
-//   POST /assistance                  -> store (flag duplicate, save override reason)
+$router->get('/farmers/{id}/assistance-history',  'AssistanceController@profileHistory');   // Backward compat
 
 // --- 6.0 Generate Reports ---
 $router->get('/reports',                'ReportController@index');
