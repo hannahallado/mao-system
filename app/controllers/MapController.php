@@ -122,6 +122,21 @@ class MapController extends Controller
                 ];
             }
         }
+
+        $features[] = [
+            'id' => 'sample-patic-location',
+            'kind' => 'farms',
+            'label' => 'Sample farm location',
+            'barangay' => 'Patic',
+            'commodity' => 'Rice',
+            'category' => 'Crop farm',
+            'latitude' => 10.5220,
+            'longitude' => 122.8070,
+            'boundary' => null,
+            'recordUrl' => url('farms/sample-patic-location'),
+            'profileUrl' => null,
+        ];
+
         return $features;
     }
 

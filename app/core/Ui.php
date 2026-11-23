@@ -174,7 +174,9 @@ class Ui
             . (!empty($o['placeholder']) ? ' placeholder="' . e($o['placeholder']) . '"' : '')
             . (!empty($o['maxlength']) ? ' maxlength="' . (int) $o['maxlength'] . '"' : '')
             . (!empty($o['inputmode']) ? ' inputmode="' . e($o['inputmode']) . '"' : '')
+            . (isset($o['min']) ? ' min="' . e($o['min']) . '"' : '')
             . (!empty($o['max']) ? ' max="' . e($o['max']) . '"' : '')
+            . (!empty($o['step']) ? ' step="' . e($o['step']) . '"' : '')
             . (!empty($o['readonly']) ? ' readonly' : '') . '>';
         return self::fieldWrap($o['col'] ?? 'col-md-6',
             self::label($name, $label, !empty($o['required'])) . $in . self::feedback($name, $o['help'] ?? null));

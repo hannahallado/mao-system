@@ -57,10 +57,13 @@ $router->get('/map/fishery', 'MapController@fishery');
 $router->get('/monitoring', 'MonitoringController@index');
 $router->get('/monitoring/production', 'ProductionController@index');
 $router->get('/monitoring/production/create', 'ProductionController@create');
+$router->post('/monitoring/production/create', 'ProductionController@store');
 $router->get('/monitoring/damage', 'DamageController@index');
 $router->get('/monitoring/damage/create', 'DamageController@create');
+$router->post('/monitoring/damage/create', 'DamageController@store');
 $router->get('/monitoring/training', 'TrainingController@index');
 $router->get('/monitoring/training/create', 'TrainingController@create');
+$router->post('/monitoring/training/create', 'TrainingController@store');
 $router->get('/monitoring/training/{id}', 'TrainingController@show');
 
 // --- 5.0 Administer Agricultural Programs ---
