@@ -41,6 +41,10 @@ class Router
         if ($this->basePath !== '' && str_starts_with($path, $this->basePath)) {
             $path = substr($path, strlen($this->basePath));
         }
+        // Treat /index.php and /index.php/foo like / and /foo
+        if (str_starts_with($path, '/index.php')) {
+            $path = substr($path, strlen('/index.php'));
+        }
         $path = '/' . trim($path, '/');
 
         foreach ($this->routes as $route) {
