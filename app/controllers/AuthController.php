@@ -11,7 +11,8 @@ class AuthController extends Controller
 
     public function login(): void
     {
-        $data = $this->only(['username', 'password']);
+        $data = $this->only(['email', 'username', 'password']);
+        $data['identifier'] = trim((string) ($data['email'] ?? '')) ?: trim((string) ($data['username'] ?? ''));
         $back = '/login';
 
         if (Auth::lockedOut()) {
@@ -20,13 +21,13 @@ class AuthController extends Controller
         }
 
         $clean = $this->validate($data, [
-            'username' => 'required|max:50',
+            'identifier' => 'required|max:100',
             'password' => 'required',
         ], $back);
 
-        if (!Auth::attempt($clean['username'], (string) $data['password'])) {
-            flash('danger', 'Invalid username or password.');
-            flash_old(['username' => $clean['username']]);
+        if (!Auth::attempt($clean['identifier'], (string) $data['password'])) {
+            flash('danger', 'Invalid email or password.');
+            flash_old(['email' => $clean['identifier'], 'username' => $clean['identifier']]);
             $this->redirect($back);
         }
 

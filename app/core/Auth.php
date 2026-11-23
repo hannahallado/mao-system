@@ -8,14 +8,14 @@ class Auth
     private const MAX_ATTEMPTS = 5;
     private const LOCKOUT_SECONDS = 300;
 
-    public static function attempt(string $username, string $password): bool
+    public static function attempt(string $identifier, string $password): bool
     {
         if (self::lockedOut()) {
             return false;
         }
 
-        $stmt = Database::connect()->prepare('SELECT * FROM users WHERE username = ? AND is_active = 1 LIMIT 1');
-        $stmt->execute([$username]);
+        $stmt = Database::connect()->prepare('SELECT * FROM users WHERE (email = ? OR username = ?) AND is_active = 1 LIMIT 1');
+        $stmt->execute([$identifier, $identifier]);
         $user = $stmt->fetch();
 
         if (!$user || !password_verify($password, $user['password_hash'])) {

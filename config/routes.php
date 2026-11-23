@@ -17,7 +17,7 @@ $router->post('/login',  'AuthController@login',     ['public' => true]);
 $router->post('/logout', 'AuthController@logout');
 
 // --- Home ---
-$router->get('/',     'HomeController@index');
+$router->get('/',     'LandingController@index', ['public' => true]);
 $router->get('/home', 'HomeController@index');
 
 // --- Dev: component style guide ---
