@@ -289,14 +289,6 @@ function redirectLogin(event) {
 // Start with modal closed
 closeLoginModal();
 
-function submitSweesh(e) {
-  e.preventDefault();
-  alert(
-    "THANK YOU! The Municipal Agriculture Office will contact you shortly.",
-  );
-  closeModal();
-  document.getElementById("sweeshForm").reset();
-}
 
 // Click outside to close
 modal.addEventListener("click", function (e) {
