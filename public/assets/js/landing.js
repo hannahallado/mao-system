@@ -171,35 +171,70 @@ menuButton.querySelector(".menu-label")?.addEventListener("click", (e) => {
 });
 
 setTimeout(() => {
-  document.querySelector(".loading-screen").style.display = "none";
+  // The splash is not rendered when returning to log in (?login=1)
+  const loadingScreen = document.querySelector(".loading-screen");
+  if (loadingScreen) loadingScreen.style.display = "none";
 }, 3000);
 document;
 
 // Modal Functions - FIXED VERSION
 const modal = document.getElementById("modal");
 
+// FAQ fade in/out, same timing as the login modal (see .faq-modal in landing.css)
+const FAQ_FADE_MS = 450;
+let faqFadeTimer = null;
+
 function openModal() {
+  clearTimeout(faqFadeTimer);
   modal.style.display = "flex";
   document.body.style.overflow = "hidden";
+  // Force a reflow so the browser sees opacity 0 before we fade in
+  void modal.offsetWidth;
+  modal.classList.add("is-open");
 }
 
 function closeModal() {
-  modal.style.display = "none";
-  document.body.style.overflow = "auto";
+  clearTimeout(faqFadeTimer);
+  modal.classList.remove("is-open");
+  // Hide only after the fade-out finishes
+  faqFadeTimer = setTimeout(() => {
+    modal.style.display = "none";
+    document.body.style.overflow = "auto";
+  }, FAQ_FADE_MS);
 }
 
 // Modal Functions - FIXED VERSION
 const modallogin = document.getElementById("loginModal");
 
+// The logo is a large PNG (770px, ~800 KB). Decode it now, while the modal is
+// hidden, so it doesn't pop in / flicker the first time the modal opens.
+document.querySelector("#loginModal .login-logo")?.decode?.().catch(() => {});
+
+const LOGIN_FADE_MS = 450; // keep in sync with #loginModal transition in landing.css
+let loginFadeTimer = null;
+
 function openLoginModal() {
+  clearTimeout(loginFadeTimer);
   modallogin.style.display = "flex";
+  // Hiding the scrollbar makes the page jump sideways; pad by its width instead
+  const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+  if (scrollbar > 0) document.body.style.paddingRight = scrollbar + "px";
   document.body.style.overflow = "hidden";
+  // Force a reflow so the browser sees opacity 0 before we fade in
+  void modallogin.offsetWidth;
+  modallogin.classList.add("is-open");
 }
 
 function closeLoginModal() {
-  modallogin.style.display = "none";
-  document.body.style.overflow = "auto";
-  exitTermsView();
+  clearTimeout(loginFadeTimer);
+  modallogin.classList.remove("is-open");
+  // Hide only after the fade-out finishes
+  loginFadeTimer = setTimeout(() => {
+    document.body.style.overflow = "auto";
+    document.body.style.paddingRight = "";
+    modallogin.style.display = "none";
+    exitTermsView();
+  }, LOGIN_FADE_MS);
 }
 
 // Click outside to close
@@ -249,7 +284,7 @@ function exitTermsView() {
   modallogin.classList.remove("is-terms");
   if (btn) {
     btn.type = "submit";
-    btn.textContent = "Enter";
+    btn.textContent = "Log in";
   }
 }
 
@@ -277,6 +312,44 @@ if (loginSubmitBtn) {
   });
 }
 
+// Login -> dashboard transition. The submit event only fires once the browser's
+// own validation passes (required fields + terms checkbox). We play the exit
+// animation (box fades out, green curtain covers the screen), then submit for
+// real. The dashboard continues from the same green (see .page-enter in style.css).
+const LOGIN_EXIT_MS = 500; // keep in sync with .login-curtain in landing.css
+const loginForm = document.getElementById("sweeshForm");
+let loginSubmitting = false;
+
+if (loginForm) {
+  loginForm.addEventListener("submit", (e) => {
+    if (loginSubmitting) return; // already on its way
+    e.preventDefault();
+    loginSubmitting = true;
+
+    if (loginSubmitBtn) {
+      loginSubmitBtn.disabled = true;
+      loginSubmitBtn.textContent = "Logging in…";
+    }
+    document.body.classList.add("is-logging-in");
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // form.submit() skips the submit event, so this handler won't run again
+    setTimeout(() => loginForm.submit(), reduceMotion ? 0 : LOGIN_EXIT_MS);
+  });
+}
+
+// Back button from the dashboard can restore this page from cache with the
+// curtain still up; reset it
+window.addEventListener("pageshow", (e) => {
+  if (!e.persisted) return;
+  loginSubmitting = false;
+  document.body.classList.remove("is-logging-in");
+  if (loginSubmitBtn) {
+    loginSubmitBtn.disabled = false;
+    loginSubmitBtn.textContent = "Log in";
+  }
+});
+
 function redirectLogin(event) {
   // Remove or comment out this line if it exists:
   // event.preventDefault();
@@ -286,8 +359,39 @@ function redirectLogin(event) {
   return true;
 }
 
-// Start with modal closed
-closeLoginModal();
+// After logout (/?login=1) the server renders the modal already in the page
+// (class is-autoopen) at opacity 0, so the landing content shows instantly and
+// only the overlay + modal fade in. Otherwise start with the modal closed.
+const autoOpenLogin = modallogin.classList.contains("is-autoopen");
+
+if (!autoOpenLogin) {
+  closeLoginModal();
+} else {
+  // Remove ?login=1 so a refresh doesn't reopen the modal
+  history.replaceState(null, "", window.location.pathname + window.location.hash);
+
+  // Page content is shown with no transitions; turn them back on after the
+  // first frames so the nav's scroll hide/show still animates later
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => document.body.classList.remove("is-instant"))
+  );
+
+  // Let the landing page sit on screen for a moment, then fade in the
+  // overlay + modal. Also wait for the hero photo to decode (capped) so the
+  // fade isn't fighting the image decode for frames.
+  const LOGIN_OPEN_DELAY_MS = 900;
+  const heroBg = document.querySelector("#Hero .hero-bg");
+  const heroReady =
+    heroBg && heroBg.decode ? heroBg.decode().catch(() => {}) : Promise.resolve();
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  Promise.all([
+    Promise.race([heroReady, wait(1500)]),
+    wait(LOGIN_OPEN_DELAY_MS),
+  ]).then(() => {
+    requestAnimationFrame(() => requestAnimationFrame(openLoginModal));
+  });
+}
 
 
 // Click outside to close
@@ -849,7 +953,8 @@ const faqNavEl = document.querySelector(".nav");
 const faqMenuWrapper = document.querySelector(".menu-btn-wrapper");
 
 function isFaqOpen() {
-  return modal.style.display === "flex";
+  // Class, not display: display stays "flex" during the fade-out
+  return modal.classList.contains("is-open");
 }
 
 // Panel starts just below the nav (or the menu circle, whichever is lower)
@@ -866,9 +971,14 @@ function setFaqItem(item, open) {
 
 // Runs whenever the FAQ is closed, however it was closed
 function faqReset() {
-  document.documentElement.style.overflow = "";
-  faqItems.forEach((item) => setFaqItem(item, false));
   faqToggleBtn.setAttribute("aria-expanded", "false");
+  // Wait for the fade-out before collapsing answers / unlocking scroll,
+  // so the panel doesn't change while it is fading
+  setTimeout(() => {
+    if (isFaqOpen()) return; // reopened during the fade
+    document.documentElement.style.overflow = "";
+    faqItems.forEach((item) => setFaqItem(item, false));
+  }, FAQ_FADE_MS);
 }
 
 function toggleFaq() {
@@ -925,6 +1035,18 @@ window.addEventListener(
 // Clicking the backdrop closes via the existing handler; sync our state
 modal.addEventListener("click", function (e) {
   if (e.target === modal && !isFaqOpen()) faqReset();
+});
+
+// Click anywhere outside the FAQ panel closes it. Needed on top of the backdrop
+// handler because the nav sits above the overlay, so clicks there never reach it.
+document.addEventListener("click", function (e) {
+  if (!isFaqOpen()) return;
+  if (e.target.closest(".faq-panel")) return;
+  // Buttons that open/toggle the FAQ already handle their own click
+  if (e.target.closest('.access-btn, .footer-faq-btn, [onclick*="toggleFaq"]')) return;
+  // Menu button has its own open/close behaviour; menu links close the FAQ already
+  if (menuButton.contains(e.target)) return;
+  toggleFaq();
 });
 
 document.addEventListener("keydown", function (e) {

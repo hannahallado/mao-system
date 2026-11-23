@@ -26,18 +26,20 @@ class AuthController extends Controller
         ], $back);
 
         if (!Auth::attempt($clean['identifier'], (string) $data['password'])) {
-            flash('danger', 'Invalid email or password.');
+            flash('danger', 'Invalid username or password.');
             flash_old(['email' => $clean['identifier'], 'username' => $clean['identifier']]);
             $this->redirect($back);
         }
 
+        // One-time flag: the next dashboard page plays the entry animation
+        $_SESSION['just_logged_in'] = true;
         $this->redirect('/home');
     }
 
     public function logout(): void
     {
         Auth::logout();
-        flash('success', 'You have been logged out.');
-        $this->redirect('/login');
+        // Back to the landing page with the login modal open
+        $this->redirect('/?login=1');
     }
 }

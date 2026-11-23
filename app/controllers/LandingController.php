@@ -8,6 +8,9 @@ class LandingController extends Controller
             $this->redirect('/home');
         }
 
-        $this->view('landing/index', [], null);
+        // Skip the splash screen when coming back to log in (e.g. after logout)
+        $showSplash = !isset($_GET['login']);
+
+        $this->view('landing/index', ['showSplash' => $showSplash], null);
     }
 }
