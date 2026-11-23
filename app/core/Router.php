@@ -65,7 +65,7 @@ class Router
         // 1. Login required unless route is public
         if (empty($opts['public']) && !Auth::check()) {
             flash('warning', 'Please log in to continue.');
-            redirect('/login');
+            redirect(AuthController::LOGIN_URL);
         }
 
         // 2. Role restriction

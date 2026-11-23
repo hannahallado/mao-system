@@ -495,6 +495,10 @@ body.no-splash.is-instant .marquee {
 }
 
 #loginModal {
+  /* Above the fixed nav (99998), otherwise the nav covers the top of the
+     overlay: it stays undimmed, swallows "click outside" and, on shorter
+     screens, sits on top of the X. Below the login curtain (100000). */
+  z-index: 99999;
   flex-direction: column;
   padding: 2rem 3rem;
   opacity: 0;
@@ -506,12 +510,18 @@ body.no-splash.is-instant .marquee {
   opacity: 1;
 }
 
+/* While invisible (waiting to open after logout, or fading out) don't block
+   clicks on the page underneath */
+#loginModal:not(.is-open) {
+  pointer-events: none;
+}
+
 /* Login -> dashboard: the box fades out, then a curtain in the dashboard
-   sidebar's green (#0b3b2c) covers the screen before the form submits */
+   sidebar's green (#022f2a) covers the screen before the form submits */
 .login-curtain {
   position: fixed;
   inset: 0;
-  background: #0b3b2c;
+  background: #022f2a;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -616,6 +626,32 @@ body.is-logging-in #loginModal .modal-box {
 
 #loginModal #sweeshForm label:first-of-type {
   margin-top: 0;
+}
+
+/* Login messages (wrong password, please log in, etc.) */
+.login-alert {
+  margin: 0 0 1.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.login-alert-danger {
+  background: #fdecec;
+  color: #b42318;
+}
+
+.login-alert-warning {
+  background: #fff3e3;
+  color: #a64b00;
+}
+
+.login-alert-success,
+.login-alert-info {
+  background: #e8f3ee;
+  color: #0b3b2c;
 }
 
 #loginModal #sweeshForm input[type="text"],

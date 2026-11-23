@@ -379,7 +379,8 @@ if (!autoOpenLogin) {
   // Let the landing page sit on screen for a moment, then fade in the
   // overlay + modal. Also wait for the hero photo to decode (capped) so the
   // fade isn't fighting the image decode for frames.
-  const LOGIN_OPEN_DELAY_MS = 900;
+  // Shorter wait when coming back with a message (e.g. wrong password)
+  const LOGIN_OPEN_DELAY_MS = modallogin.querySelector(".login-alert") ? 300 : 900;
   const heroBg = document.querySelector("#Hero .hero-bg");
   const heroReady =
     heroBg && heroBg.decode ? heroBg.decode().catch(() => {}) : Promise.resolve();
@@ -389,7 +390,16 @@ if (!autoOpenLogin) {
     Promise.race([heroReady, wait(1500)]),
     wait(LOGIN_OPEN_DELAY_MS),
   ]).then(() => {
-    requestAnimationFrame(() => requestAnimationFrame(openLoginModal));
+    // Two frames so pending layout/paint finishes first. requestAnimationFrame
+    // doesn't run in background tabs, so open anyway after 200ms.
+    let opened = false;
+    const openOnce = () => {
+      if (opened) return;
+      opened = true;
+      openLoginModal();
+    };
+    requestAnimationFrame(() => requestAnimationFrame(openOnce));
+    setTimeout(openOnce, 200);
   });
 }
 

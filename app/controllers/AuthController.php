@@ -1,19 +1,20 @@
 <?php
 class AuthController extends Controller
 {
+    /** Login lives in the landing page modal; this opens it. */
+    public const LOGIN_URL = '/?login=1';
+
+    /** Old /login links: there is no separate login page, open the modal. */
     public function showLogin(): void
     {
-        if (Auth::check()) {
-            $this->redirect('/home');
-        }
-        $this->view('auth/login', ['title' => 'Login'], 'auth');
+        $this->redirect(Auth::check() ? '/home' : self::LOGIN_URL);
     }
 
     public function login(): void
     {
         $data = $this->only(['email', 'username', 'password']);
         $data['identifier'] = trim((string) ($data['email'] ?? '')) ?: trim((string) ($data['username'] ?? ''));
-        $back = '/login';
+        $back = self::LOGIN_URL;
 
         if (Auth::lockedOut()) {
             flash('danger', 'Too many failed attempts. Please wait a few minutes and try again.');
@@ -23,7 +24,7 @@ class AuthController extends Controller
         $clean = $this->validate($data, [
             'identifier' => 'required|max:100',
             'password' => 'required',
-        ], $back);
+        ], $back, ['identifier' => 'Username']);
 
         if (!Auth::attempt($clean['identifier'], (string) $data['password'])) {
             flash('danger', 'Invalid username or password.');
@@ -40,6 +41,6 @@ class AuthController extends Controller
     {
         Auth::logout();
         // Back to the landing page with the login modal open
-        $this->redirect('/?login=1');
+        $this->redirect(self::LOGIN_URL);
     }
 }

@@ -1,38 +1,53 @@
 <?php
 $u        = Auth::user();
 $name     = $u['full_name'] ?? '';
-$initials = strtoupper(implode('', array_map(fn ($w) => mb_substr($w, 0, 1), array_slice(preg_split('/\s+/', trim($name)) ?: [], 0, 2))));
-$roleName = Auth::isAgriculturist() ? 'Municipal Agriculturist' : 'MAO Technician';
+$roleName = Auth::isAgriculturist() ? 'Municipal Agriculturist' : 'Agricultural Technologist';
 ?>
 <header class="app-header">
-    <div class="user-chip">
-        <span class="avatar"><?= e($initials) ?></span>
-        <div>
-            <div class="user-name"><?= e($name) ?></div>
-            <div class="user-sub"><?= e($roleName) ?></div>
-        </div>
+    <div class="app-header-left">
+        <button type="button" class="sidebar-toggle" id="sidebarToggle"
+                aria-label="Toggle navigation" aria-controls="appSidebar" aria-expanded="true">
+            <i class="bi bi-list" aria-hidden="true"></i>
+        </button>
+        <a href="<?= url('/home') ?>" class="app-brand">
+            <img src="<?= asset('img/logo.png') ?>" alt="" class="app-brand-logo" width="36" height="36">
+            <span class="app-brand-text">
+                <span class="app-brand-name"><?= e(config('app_name')) ?></span>
+                <span class="app-brand-sub">Information Management System</span>
+            </span>
+        </a>
     </div>
-    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#logoutModal">
-        Log out
-    </button>
+
+    <!-- Profile: display only (log out is in the sidebar) -->
+    <div class="profile" title="<?= e($name) ?>">
+        <span class="profile-role"><?= e($roleName) ?></span>
+        <span class="profile-icon" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+    </div>
 </header>
 
-<!-- Logout confirmation -->
-<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<!-- Logout confirmation (opened from the sidebar) -->
+<div class="modal fade logout-modal" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="logoutModalTitle">Log out?</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="logoutModalTitle">Log Out</h5>
+                <!-- Same X as the landing page login modal -->
+                <button type="button" class="x-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
             </div>
             <div class="modal-body">
-                You will need to log in again to access the system.
+                <span class="logout-modal-icon" aria-hidden="true"><i class="bi bi-box-arrow-right"></i></span>
+                <p class="logout-modal-text">Are you sure you want to log out of the <?= e(config('app_name')) ?> system?</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-pill btn-pill-outline" data-bs-dismiss="modal">Cancel</button>
                 <form method="post" action="<?= url('/logout') ?>" class="m-0">
                     <?= Csrf::field() ?>
-                    <button type="submit" class="btn btn-primary">Log out</button>
+                    <button type="submit" class="btn-pill btn-pill-primary">
+                        <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Log Out
+                    </button>
                 </form>
             </div>
         </div>

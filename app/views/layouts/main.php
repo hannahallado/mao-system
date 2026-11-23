@@ -21,20 +21,33 @@
 $pageEnter = !empty($_SESSION['just_logged_in']);
 unset($_SESSION['just_logged_in']);
 ?>
-<body<?= $pageEnter ? ' class="page-enter"' : '' ?>>
+<body class="page-anim<?= $pageEnter ? ' page-enter' : '' ?>"<?= $pageEnter ? ' data-fresh-login="1"' : '' ?>
+      data-logout-url="<?= e(url('/logout')) ?>">
+<script>
+    // Restore a collapsed sidebar before the first paint (no flash)
+    try {
+        if (localStorage.getItem('mao_sidebar') === 'collapsed') {
+            document.body.classList.add('sidebar-collapsed');
+        }
+    } catch (e) {}
+</script>
 <div class="app">
-    <?php require APP_PATH . '/views/partials/sidebar.php'; ?>
-    <div class="app-main">
-        <?php require APP_PATH . '/views/partials/topbar.php'; ?>
-        <main class="app-content">
-            <?php require APP_PATH . '/views/partials/breadcrumbs.php'; ?>
-            <?php require APP_PATH . '/views/partials/flash.php'; ?>
-            <?= $content ?>
-        </main>
+    <?php require APP_PATH . '/views/partials/topbar.php'; ?>
+    <div class="app-body">
+        <?php require APP_PATH . '/views/partials/sidebar.php'; ?>
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+        <div class="app-main">
+            <main class="app-content">
+                <?php require APP_PATH . '/views/partials/breadcrumbs.php'; ?>
+                <?php require APP_PATH . '/views/partials/flash.php'; ?>
+                <?= $content ?>
+            </main>
+        </div>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
+<script src="<?= asset('js/session-guard.js') ?>"></script>
 <?php foreach (($scripts ?? []) as $script): ?>
 <script src="<?= asset($script) ?>"></script>
 <?php endforeach; ?>
