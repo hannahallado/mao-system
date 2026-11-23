@@ -15,7 +15,7 @@
   <div class="loading-screen">
     <div class="loading-content">
       <div class="loading-logo">
-  <img src="<?= asset(\'img/logo.png\') ?>" alt="MAO logo">
+  <img src="<?= asset('img/logo.png') ?>" alt="MAO logo">
 </div>
       <div class="loading-tagline">Municipal Agriculture Office</div>
     </div>
@@ -23,7 +23,7 @@
 
   <section class="hero" id="Hero">
     <img
-      src="<?= asset(\'img/18-upscaled.jpg\') ?>"
+      src="<?= asset('img/18-upscaled.jpg') ?>"
       alt="Farmland and fishing community"
       class="hero-bg"
     />
@@ -48,25 +48,25 @@
       <a href="#Concept">
         About
         <span class="inline-preview">
-          <img src="<?= asset(\'img/9-upscaled.jpg\') ?>" alt="About preview">
+          <img src="<?= asset('img/9-upscaled.jpg') ?>" alt="About preview">
         </span>
       </a>
       <a href="#Experience">
         Experiences
         <span class="inline-preview">
-          <img src="<?= asset(\'img/10-upscaled.jpg\') ?>" alt="Services preview">
+          <img src="<?= asset('img/10-upscaled.jpg') ?>" alt="Services preview">
         </span>
       </a>
       <a href="#Services">
         Services
         <span class="inline-preview"> 
-          <img src="<?= asset(\'img/11-upscaled.jpg\') ?>" alt="VIP preview">
+          <img src="<?= asset('img/11-upscaled.jpg') ?>" alt="VIP preview">
         </span>
       </a>
       <a href="#Contact">
         Contact
         <span class="inline-preview">
-          <img src="<?= asset(\'img/13-upscaled.jpg\') ?>" alt="Contact preview">
+          <img src="<?= asset('img/13-upscaled.jpg') ?>" alt="Contact preview">
         </span>
       </a>
     </div>
@@ -387,7 +387,7 @@
 
     <div class="bottom-card">
       <img
-        src="<?= asset(\'img/1-upscaled.jpg\') ?>"
+        src="<?= asset('img/1-upscaled.jpg') ?>"
         alt="Farm and community"
         class="card-image"/>
       
@@ -512,13 +512,13 @@
     Brings agriculture and fisheries services closer to you.
   </div>
     <div class="exp-carousel" id="expCarousel" role="region" aria-roledescription="carousel" aria-label="Agriculture and fisheries showcase" tabindex="0">
-    <figure class="exp-card"><img src="<?= asset(\'img/7-upscaled.jpg\') ?>" alt="Showcase image 1" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset(\'img/14-upscaled.jpg\') ?>" alt="Showcase image 2" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset(\'img/30-upscaled.jpg\') ?>" alt="Showcase image 3" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset(\'img/3-upscaled.jpg\') ?>" alt="Showcase image 4" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset(\'img/11-upscaled.jpg\') ?>" alt="Showcase image 5" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset(\'img/5-upscaled.jpg\') ?>" alt="Showcase image 6" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset(\'img/13-upscaled.jpg\') ?>" alt="Showcase image 7" draggable="false"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/7-upscaled.jpg') ?>" alt="Showcase image 1" draggable="false"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/14-upscaled.jpg') ?>" alt="Showcase image 2" draggable="false"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/30-upscaled.jpg') ?>" alt="Showcase image 3" draggable="false"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/3-upscaled.jpg') ?>" alt="Showcase image 4" draggable="false"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/11-upscaled.jpg') ?>" alt="Showcase image 5" draggable="false"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/5-upscaled.jpg') ?>" alt="Showcase image 6" draggable="false"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/13-upscaled.jpg') ?>" alt="Showcase image 7" draggable="false"></figure>
   </div>
 </div>
 
@@ -535,27 +535,27 @@
 
   <div class="ib-list-container">
 
-    <div class="ib-row" data-img="<?= asset(\'img/6-upscaled.jpg\') ?>">
+    <div class="ib-row" data-img="<?= asset('img/6-upscaled.jpg') ?>">
       <span class="ib-left">One registry for every<br> farmer and fisherfolk</span>
       <span class="ib-right">Every farmer and fisherfolk in the municipality is recorded in one organized registry, so no one is left behind.</span>
     </div>
     
-    <div class="ib-row" data-img="<?= asset(\'img/7-upscaled.jpg\') ?>">
+    <div class="ib-row" data-img="<?= asset('img/7-upscaled.jpg') ?>">
       <span class="ib-left">Complete agricultural records</span>
       <span class="ib-right">Crop, livestock, and fishery data kept organized, with production monitored season after season.</span>
     </div>
 
-    <div class="ib-row" data-img="<?= asset(\'img/12-upscaled.jpg\') ?>">
+    <div class="ib-row" data-img="<?= asset('img/12-upscaled.jpg') ?>">
       <span class="ib-left">Programs and assistance,<br> tracked with care</span>
       <span class="ib-right">From application to release, follow subsidies, seeds, and support programs with clear, transparent updates.</span>
     </div>
 
-    <div class="ib-row" data-img="<?= asset(\'img/8-upscaled.jpg\') ?>">
+    <div class="ib-row" data-img="<?= asset('img/8-upscaled.jpg') ?>">
       <span class="ib-left">Farms and fishing areas,<br> mapped for planning</span>
       <span class="ib-right">GIS maps show where support is needed most, helping the office plan and respond with confidence.</span>
     </div>
 
-    <div class="ib-row" data-img="<?= asset(\'img/15-upscaled.jpg\') ?>">
+    <div class="ib-row" data-img="<?= asset('img/15-upscaled.jpg') ?>">
       <span class="ib-left">Insights ready<br>when you need them</span>
       <span class="ib-right">Dashboard analytics and generated reports give the office and our partners clear data for better decisions.</span>
     </div>
@@ -567,7 +567,7 @@
   </div>
 
   <div class="split-section part-1">
-    <div class="split-image-box"><img src="<?= asset(\'img/6-upscaled.jpg\') ?>"></div>
+    <div class="split-image-box"><img src="<?= asset('img/6-upscaled.jpg') ?>"></div>
     <div class="split-content-box">
       <h2 class="split-title">
         A community growing together
@@ -616,7 +616,7 @@
         </div>
       </div>
     </div>
-    <div class="split-image-box"><img src="<?= asset(\'img/23-upscaled.jpg\') ?>"></div>
+    <div class="split-image-box"><img src="<?= asset('img/23-upscaled.jpg') ?>"></div>
     </div>
   </div>
 
@@ -636,10 +636,10 @@
     <div class="curved-footer-logo">MAO</div>
 
     <div class="curved-footer-brands">
-      <img src="<?= asset(\'img/CCS.png\') ?>" alt="Partner 1" />
-      <img src="<?= asset(\'img/DOA.png\') ?>" alt="Partner 2" />
-      <img src="<?= asset(\'img/PCAF.png\') ?>" alt="Partner 3" />
-      <img src="<?= asset(\'img/PLOGO.png\') ?>" alt="Partner 4" />
+      <img src="<?= asset('img/CCS.png') ?>" alt="Partner 1" />
+      <img src="<?= asset('img/DOA.png') ?>" alt="Partner 2" />
+      <img src="<?= asset('img/PCAF.png') ?>" alt="Partner 3" />
+      <img src="<?= asset('img/PLOGO.png') ?>" alt="Partner 4" />
     </div>
 
     <div class="curved-footer-socials">
@@ -662,7 +662,7 @@
 
 <section class="hero hero-loop-clone" id="heroLoopClone" aria-hidden="true">
   <img
-    src="<?= asset(\'img/18-upscaled.jpg\') ?>"
+    src="<?= asset('img/18-upscaled.jpg') ?>"
     alt=""
     class="hero-bg"
   />
@@ -685,7 +685,7 @@
 
   <div class="bottom-card">
     <img
-      src="<?= asset(\'img/1-upscaled.jpg\') ?>"
+      src="<?= asset('img/1-upscaled.jpg') ?>"
       alt=""
       class="card-image"
     />
