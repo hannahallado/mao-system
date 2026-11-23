@@ -343,7 +343,8 @@ body::-webkit-scrollbar {
 
 #sweeshForm input[type="text"],
 #sweeshForm input[type="email"],
-#sweeshForm input[type="tel"] {
+#sweeshForm input[type="tel"],
+#sweeshForm input[type="password"] {
   width: 100%;
   padding: 1rem 0;
   border: none;

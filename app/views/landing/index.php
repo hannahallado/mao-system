@@ -421,8 +421,8 @@
         <div class="login-form-fields">
           <h2 class="modal-title" style="font-size: 2rem; margin-bottom: 2rem;">Welcome back, Admin! <br>Ready to serve the community?</h2>
 
-          <label style="font-size: 1rem; font-weight: 400;">E-mail*</label>
-          <input type="email" id="adminEmail" name="email" autocomplete="email" placeholder="admin@email.com" required />
+          <label style="font-size: 1rem; font-weight: 400;">Email or Username*</label>
+<input type="text" id="adminEmail" name="email" autocomplete="username" placeholder="Enter email or username" required />
 
           <label style="font-size: 1rem; font-weight: 400;">Password*</label>
           <input type="password" id="adminPhone" name="password" autocomplete="current-password" placeholder="Enter Password" required />
