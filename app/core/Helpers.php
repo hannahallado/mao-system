@@ -33,7 +33,11 @@ function url(string $path = ''): string
 
 function asset(string $path): string
 {
-    return url('assets/' . ltrim($path, '/'));
+    $path = ltrim($path, '/');
+    // Append file modified time so browsers reload CSS/JS after changes
+    $file = BASE_PATH . '/public/assets/' . $path;
+    $version = is_file($file) ? '?v=' . filemtime($file) : '';
+    return url('assets/' . $path) . $version;
 }
 
 function redirect(string $path): never

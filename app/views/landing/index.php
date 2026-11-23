@@ -11,7 +11,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body<?= ($showSplash ?? true) ? '' : ' class="no-splash is-instant"' ?>>
+  <?php if ($showSplash ?? true): ?>
   <div class="loading-screen">
     <div class="loading-content">
       <div class="loading-logo">
@@ -20,6 +21,7 @@
       <div class="loading-tagline">Municipal Agriculture Office</div>
     </div>
   </div>
+  <?php endif; ?>
 
   <section class="hero" id="Hero">
     <img
@@ -79,6 +81,12 @@
     <div class="faq-scroll" tabindex="0">
       <header class="faq-header">
         <h2 class="faq-title" id="faqTitle">Frequently Ask Questions</h2>
+        <!-- Same X as the login modal (styles in .login-close-btn); part of the
+             header, so it scrolls away with the content -->
+        <button type="button" class="login-close-btn faq-close-btn" onclick="toggleFaq()" aria-label="Close FAQs">
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </button>
       </header>
         <section class="faq-section">
           <h3 class="faq-section-title">General</h3>
@@ -414,22 +422,33 @@
     </a>
   </div>
 
-  <div class="modal-overlay" id="loginModal">
+  <!-- Green curtain shown while logging in; the dashboard fades in from the same color -->
+  <div class="login-curtain" aria-hidden="true"></div>
+
+  <div class="modal-overlay<?= ($showSplash ?? true) ? '' : ' is-autoopen' ?>" id="loginModal">
     <div class="modal-box">
+      <button type="button" class="login-close-btn" onclick="closeLoginModal()" aria-label="Close login">
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
       <form id="sweeshForm" method="POST" action="<?= url('/login') ?>">
         <?= Csrf::field() ?>
         <div class="login-form-fields">
-          <h2 class="modal-title" style="font-size: 2rem; margin-bottom: 2rem;">Welcome back, Admin! <br>Ready to serve the community?</h2>
+          <div class="login-heading">
+            <img src="<?= asset('img/logo.png') ?>" alt="MAO logo" class="login-logo" width="56" height="56">
+            <h2 class="modal-title">Personnel Login</h2>
+            <p class="login-subtitle">MAO Information Management System</p>
+          </div>
 
-          <label style="font-size: 1rem; font-weight: 400;">Email or Username*</label>
-<input type="text" id="adminEmail" name="email" autocomplete="username" placeholder="Enter email or username" required />
+          <label for="adminUsername">Username</label>
+          <input type="text" id="adminUsername" name="username" autocomplete="username" placeholder="Enter username" required />
 
-          <label style="font-size: 1rem; font-weight: 400;">Password*</label>
-          <input type="password" id="adminPhone" name="password" autocomplete="current-password" placeholder="Enter Password" required />
+          <label for="adminPassword">Password</label>
+          <input type="password" id="adminPassword" name="password" autocomplete="current-password" placeholder="Enter password" required />
 
           <div class="checkbox-row">
             <input type="checkbox" id="agree" required>
-            <label for="agree" style="font-size: .8rem;">
+            <label for="agree">
               I agree to the <span class="terms-link" id="openTermsBtn" role="button" tabindex="0">Terms &amp; Conditions</span> of MAO Admin
             </label>
           </div>
@@ -467,10 +486,9 @@
           </p>
         </div>
 
-        <button type="submit" class="modal-btn" id="loginSubmitBtn">Enter</button>
+        <button type="submit" class="modal-btn" id="loginSubmitBtn">Log in</button>
       </form>
     </div>
-    <p class="login-close-hint">Click anywhere outside to close</p>
   </div>
   </section>
 
@@ -512,13 +530,13 @@
     Brings agriculture and fisheries services closer to you.
   </div>
     <div class="exp-carousel" id="expCarousel" role="region" aria-roledescription="carousel" aria-label="Agriculture and fisheries showcase" tabindex="0">
-    <figure class="exp-card"><img src="<?= asset('img/7-upscaled.jpg') ?>" alt="Showcase image 1" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset('img/14-upscaled.jpg') ?>" alt="Showcase image 2" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset('img/30-upscaled.jpg') ?>" alt="Showcase image 3" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset('img/3-upscaled.jpg') ?>" alt="Showcase image 4" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset('img/11-upscaled.jpg') ?>" alt="Showcase image 5" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset('img/5-upscaled.jpg') ?>" alt="Showcase image 6" draggable="false"></figure>
-    <figure class="exp-card"><img src="<?= asset('img/13-upscaled.jpg') ?>" alt="Showcase image 7" draggable="false"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/7-upscaled.jpg') ?>" alt="Showcase image 1" draggable="false" loading="lazy" decoding="async"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/14-upscaled.jpg') ?>" alt="Showcase image 2" draggable="false" loading="lazy" decoding="async"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/30-upscaled.jpg') ?>" alt="Showcase image 3" draggable="false" loading="lazy" decoding="async"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/3-upscaled.jpg') ?>" alt="Showcase image 4" draggable="false" loading="lazy" decoding="async"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/11-upscaled.jpg') ?>" alt="Showcase image 5" draggable="false" loading="lazy" decoding="async"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/5-upscaled.jpg') ?>" alt="Showcase image 6" draggable="false" loading="lazy" decoding="async"></figure>
+    <figure class="exp-card"><img src="<?= asset('img/13-upscaled.jpg') ?>" alt="Showcase image 7" draggable="false" loading="lazy" decoding="async"></figure>
   </div>
 </div>
 
@@ -567,7 +585,7 @@
   </div>
 
   <div class="split-section part-1">
-    <div class="split-image-box"><img src="<?= asset('img/6-upscaled.jpg') ?>"></div>
+    <div class="split-image-box"><img src="<?= asset('img/6-upscaled.jpg') ?>" alt="" loading="lazy" decoding="async"></div>
     <div class="split-content-box">
       <h2 class="split-title">
         A community growing together
@@ -616,7 +634,7 @@
         </div>
       </div>
     </div>
-    <div class="split-image-box"><img src="<?= asset('img/23-upscaled.jpg') ?>"></div>
+    <div class="split-image-box"><img src="<?= asset('img/23-upscaled.jpg') ?>" alt="" loading="lazy" decoding="async"></div>
     </div>
   </div>
 
@@ -636,10 +654,10 @@
     <div class="curved-footer-logo">MAO</div>
 
     <div class="curved-footer-brands">
-      <img src="<?= asset('img/CCS.png') ?>" alt="Partner 1" />
-      <img src="<?= asset('img/DOA.png') ?>" alt="Partner 2" />
-      <img src="<?= asset('img/PCAF.png') ?>" alt="Partner 3" />
-      <img src="<?= asset('img/PLOGO.png') ?>" alt="Partner 4" />
+      <img src="<?= asset('img/CCS.png') ?>" alt="Partner 1" loading="lazy" />
+      <img src="<?= asset('img/DOA.png') ?>" alt="Partner 2" loading="lazy" />
+      <img src="<?= asset('img/PCAF.png') ?>" alt="Partner 3" loading="lazy" />
+      <img src="<?= asset('img/PLOGO.png') ?>" alt="Partner 4" loading="lazy" />
     </div>
 
     <div class="curved-footer-socials">

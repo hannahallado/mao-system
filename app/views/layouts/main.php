@@ -16,7 +16,12 @@
     <?php endif; ?>
     <link href="<?= asset('css/style.css') ?>" rel="stylesheet">
 </head>
-<body>
+<?php
+// Play the entry animation once, on the first page after logging in
+$pageEnter = !empty($_SESSION['just_logged_in']);
+unset($_SESSION['just_logged_in']);
+?>
+<body<?= $pageEnter ? ' class="page-enter"' : '' ?>>
 <div class="app">
     <?php require APP_PATH . '/views/partials/sidebar.php'; ?>
     <div class="app-main">

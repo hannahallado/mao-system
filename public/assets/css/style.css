@@ -1537,3 +1537,55 @@ textarea.form-control {
     gap: 0;
   }
 }
+
+/* ---------- LOGIN -> DASHBOARD ENTRY ----------
+   Only on the first page after logging in (body.page-enter, set in
+   layouts/main.php). Starts under the same green curtain the landing page
+   ends on, then the curtain fades away and the page settles in. */
+body.page-enter::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--c-primary);
+  z-index: 2000;
+  pointer-events: none;
+  animation: pageEnterCurtain 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+}
+
+body.page-enter .sidebar {
+  animation: pageEnterSidebar 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+body.page-enter .app-header {
+  animation: pageEnterUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
+
+body.page-enter .app-content {
+  animation: pageEnterUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
+}
+
+@keyframes pageEnterCurtain {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes pageEnterSidebar {
+  from { transform: translateX(-16px); }
+  to { transform: none; }
+}
+
+@keyframes pageEnterUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.page-enter::before {
+    display: none;
+  }
+  body.page-enter .sidebar,
+  body.page-enter .app-header,
+  body.page-enter .app-content {
+    animation: none;
+  }
+}
