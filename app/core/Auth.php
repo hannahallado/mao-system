@@ -64,7 +64,26 @@ class Auth
 
     public static function check(): bool
     {
-        return isset($_SESSION['user']);
+        $user = $_SESSION['user'] ?? null;
+        if (!is_array($user) || empty($user['id'])) {
+            return false;
+        }
+
+        static $checkedId = null;
+        static $isActive = false;
+        $userId = (int) $user['id'];
+        if ($checkedId !== $userId) {
+            $stmt = Database::connect()->prepare('SELECT is_active FROM users WHERE id = ? LIMIT 1');
+            $stmt->execute([$userId]);
+            $isActive = (bool) $stmt->fetchColumn();
+            $checkedId = $userId;
+        }
+
+        if (!$isActive) {
+            unset($_SESSION['user']);
+            return false;
+        }
+        return true;
     }
 
     public static function user(): ?array

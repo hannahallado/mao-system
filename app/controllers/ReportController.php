@@ -92,6 +92,7 @@ class ReportController extends Controller
             'barangays'   => Lookup::barangays(),
             'livelihoods' => Farmer::LIVELIHOODS,
             'statuses'    => Profile::STATUSES,
+            'settings'    => SystemSetting::current(),
             'generated_at'=> date('F j, Y g:i A'),
             'breadcrumbs' => [
                 ['Home', '/home'],
@@ -189,6 +190,7 @@ class ReportController extends Controller
             'subtitle'    => $config['subtitle'],
             'filter_labels' => $config['filters'],
             'mock_columns' => $config['columns'],
+            'settings'    => SystemSetting::current(),
             'generated_at'=> date('F j, Y g:i A'),
             'breadcrumbs' => [
                 ['Home', '/home'],
