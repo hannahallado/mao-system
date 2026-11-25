@@ -1406,6 +1406,77 @@ textarea.form-control {
 }
 
 /* ---------- 14. PRINT (reports) ---------- */
+.report-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.report-heading h2 {
+  margin: 3px 0 0;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.report-kicker {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.report-meta {
+  display: flex;
+  gap: 24px;
+  text-align: right;
+}
+
+.report-meta div,
+.report-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.report-meta span,
+.report-summary span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.report-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.report-summary div {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-subtle);
+}
+
+.report-summary strong {
+  font-size: 20px;
+}
+
+.report-table th {
+  white-space: nowrap;
+  background: #f8faf8;
+  font-size: 12px;
+}
+
+.report-sheet .filter-bar {
+  margin: 0;
+}
+
 @media print {
   body {
     background: #fff;
