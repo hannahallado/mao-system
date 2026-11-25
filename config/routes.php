@@ -99,6 +99,9 @@ $router->get('/reports/{slug}',         'ReportController@show');
 // --- System Management (Municipal Agriculturist only) ---
 $router->get('/system/users', 'UserController@index', ['roles' => ['agriculturist']]);
 $router->get('/system/users/create', 'UserController@create', ['roles' => ['agriculturist']]);
+$router->post('/system/users/{id}/status', 'UserController@setStatus', ['roles' => ['agriculturist']]);
 $router->get('/system/access-control', 'AccessControlController@index', ['roles' => ['agriculturist']]);
 $router->get('/system/backup', 'BackupController@index', ['roles' => ['agriculturist']]);
+$router->post('/system/backup', 'BackupController@backupNow', ['roles' => ['agriculturist']]);
 $router->get('/system/settings', 'SettingController@index', ['roles' => ['agriculturist']]);
+$router->post('/system/settings', 'SettingController@save', ['roles' => ['agriculturist']]);

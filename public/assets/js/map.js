@@ -70,6 +70,19 @@
         document.getElementById('map-detail-barangay').textContent = feature.barangay;
         document.getElementById('map-detail-commodity').textContent = feature.commodity;
 
+        const detailFields = [
+            ['owner', 'map-detail-owner'],
+            ['description', 'map-detail-description'],
+            ['area', 'map-detail-area'],
+            ['status', 'map-detail-status'],
+        ];
+        detailFields.forEach(([field, valueId]) => {
+            const value = feature[field];
+            const row = document.getElementById(`${valueId}-row`);
+            document.getElementById(valueId).textContent = value || '';
+            row.hidden = !value;
+        });
+
         const recordLink = document.getElementById('map-record-link');
         recordLink.href = feature.recordUrl;
         const profileLink = document.getElementById('map-profile-link');

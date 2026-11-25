@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 // PHP built-in server: let it serve real files (css/js/img) itself

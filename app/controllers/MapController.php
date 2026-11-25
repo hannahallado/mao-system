@@ -137,6 +137,60 @@ class MapController extends Controller
             'profileUrl' => null,
         ];
 
+        $features[] = [
+            'id' => 'sample-patic-fishpond',
+            'kind' => 'fishery',
+            'label' => 'Sample Tilapia Fishpond',
+            'barangay' => 'Patic',
+            'commodity' => 'Tilapia',
+            'category' => 'Fishpond',
+            'latitude' => 10.5162,
+            'longitude' => 122.8038,
+            'boundary' => null,
+            'owner' => 'Sample Fisherfolk A',
+            'description' => 'Freshwater tilapia fishpond',
+            'area' => '1,200 sq. m.',
+            'status' => 'Active',
+            'recordUrl' => url('fishery'),
+            'profileUrl' => null,
+        ];
+
+        $features[] = [
+            'id' => 'sample-zone5-banca',
+            'kind' => 'fishery',
+            'label' => 'Sample Motorized Banca',
+            'barangay' => 'Barangay Zone 5',
+            'commodity' => 'Milkfish (Bangus)',
+            'category' => 'Boat',
+            'latitude' => 10.5108,
+            'longitude' => 122.8065,
+            'boundary' => null,
+            'owner' => 'Sample Fisherfolk B',
+            'description' => 'Motorized banca used for coastal fishing',
+            'area' => 'Boat capacity: 8 persons',
+            'status' => 'Active',
+            'recordUrl' => url('fishery'),
+            'profileUrl' => null,
+        ];
+
+        $features[] = [
+            'id' => 'sample-zone7-aquaculture',
+            'kind' => 'fishery',
+            'label' => 'Sample Bangus Aquaculture Unit',
+            'barangay' => 'Barangay Zone 7',
+            'commodity' => 'Milkfish (Bangus)',
+            'category' => 'Aquaculture unit',
+            'latitude' => 10.5235,
+            'longitude' => 122.7982,
+            'boundary' => null,
+            'owner' => 'Sample Fisherfolk C',
+            'description' => 'Small-scale milkfish grow-out area',
+            'area' => '2,500 sq. m.',
+            'status' => 'Active',
+            'recordUrl' => url('fishery'),
+            'profileUrl' => null,
+        ];
+
         return $features;
     }
 

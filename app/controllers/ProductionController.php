@@ -49,11 +49,6 @@ class ProductionController extends Controller
         'vegetables' => 'Vegetables',
     ];
 
-    private const PERIODS = [
-        'first_half' => '1st half',
-        'second_half' => '2nd half',
-    ];
-
     private const UNITS = [
         'kg' => 'Kilograms',
         'metric_tons' => 'Metric tons',
@@ -113,20 +108,21 @@ class ProductionController extends Controller
             ],
             'references' => self::DEMO_REFERENCES,
             'commodities' => self::COMMODITIES,
-            'periods' => self::PERIODS,
+            'periods' => SystemSetting::productionPeriods(),
             'units' => self::UNITS,
         ]);
     }
 
     public function store(): void
     {
+        $periods = SystemSetting::productionPeriods();
         $data = $this->only([
             'farmer_farm', 'commodity', 'period', 'record_date', 'area_ha', 'volume', 'unit',
         ]);
         $rules = [
             'farmer_farm' => 'required|in:' . implode(',', array_keys(self::DEMO_REFERENCES)),
             'commodity' => 'required|in:' . implode(',', array_keys(self::COMMODITIES)),
-            'period' => 'required|in:' . implode(',', array_keys(self::PERIODS)),
+            'period' => 'required|in:' . implode(',', array_keys($periods)),
             'record_date' => 'required|date|not_future',
             'area_ha' => 'required|numeric',
             'volume' => 'required|numeric',
@@ -163,7 +159,7 @@ class ProductionController extends Controller
         };
         $record = [
             'date' => $clean['record_date'],
-            'period' => self::PERIODS[$clean['period']],
+            'period' => $periods[$clean['period']],
             'commodity' => self::COMMODITIES[$clean['commodity']],
             'barangay_id' => $barangayId,
             'farmer_farm' => $reference,

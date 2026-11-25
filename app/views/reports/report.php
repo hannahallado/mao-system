@@ -1,6 +1,6 @@
 <?php
 $isFunctional = $status === 'functional';
-$period = date('Y');
+$period = format_date($settings['reporting_start']) . ' – ' . format_date($settings['reporting_end']);
 ?>
 <div class="page-head">
     <div>
@@ -22,11 +22,13 @@ $period = date('Y');
     <div class="card-body">
         <div class="report-heading">
             <div>
-                <div class="report-kicker">Municipal Agriculture Office</div>
+                <div class="report-kicker"><?= e($settings['office_name']) ?></div>
+                <div class="text-muted small"><?= e($settings['municipality']) ?></div>
+                <div class="text-muted small"><?= e($settings['report_header']) ?></div>
                 <h2><?= e($title) ?></h2>
             </div>
             <div class="report-meta">
-                <div><span>Report year</span><strong><?= e($period) ?></strong></div>
+                <div><span>Reporting period</span><strong><?= e($period) ?></strong></div>
                 <div><span>Generated</span><strong><?= e($generated_at) ?></strong></div>
             </div>
         </div>

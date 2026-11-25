@@ -1,17 +1,13 @@
 <?php
-/** Process System Management. Stub: replace each mockup() call with the real view and logic. */
+/** Process System Management. */
 class AccessControlController extends Controller
 {
     public function index(): void
     {
-        $this->mockup([
-            'title'   => 'Access Control',
-            'group'   => 'System Management',
-            'process' => 'System Management',
-            'status'  => 'mockup',
-            'todo'    => [
-                'Role / sector permission matrix (Technician vs Municipal Agriculturist)',
-            ],
+        $this->view('system/access-control', [
+            'title' => 'Access Control',
+            'breadcrumbs' => [['Home', '/home'], ['System Management', null], ['Access Control', null]],
+            'menu_active' => '/system/access-control',
         ]);
     }
 }
