@@ -593,28 +593,6 @@ ALTER TABLE `program_beneficiaries`
   ADD CONSTRAINT `fk_pb_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`),
   ADD CONSTRAINT `fk_pb_profile` FOREIGN KEY (`profile_id`) REFERENCES `profiles` (`id`),
   ADD CONSTRAINT `fk_pb_program` FOREIGN KEY (`program_id`) REFERENCES `programs` (`id`);
-
-CREATE TABLE IF NOT EXISTS `system_settings` (
-  `id` tinyint(1) unsigned NOT NULL,
-  `office_name` varchar(120) NOT NULL,
-  `municipality` varchar(120) NOT NULL,
-  `report_header` varchar(200) NOT NULL,
-  `reporting_start` date NOT NULL,
-  `reporting_end` date NOT NULL,
-  `wet_season_label` varchar(60) NOT NULL DEFAULT 'Wet season',
-  `dry_season_label` varchar(60) NOT NULL DEFAULT 'Dry season',
-  `updated_by` int(10) unsigned DEFAULT NULL,
-  `updated_at` datetime NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `fk_system_settings_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT IGNORE INTO `system_settings`
-  (`id`, `office_name`, `municipality`, `report_header`, `reporting_start`, `reporting_end`, `wet_season_label`, `dry_season_label`, `updated_at`)
-VALUES
-  (1, 'Municipal Agriculture Office', 'Pulupandan', 'Pulupandan, Negros Occidental',
-   CONCAT(YEAR(CURRENT_DATE), '-01-01'), CONCAT(YEAR(CURRENT_DATE), '-12-31'),
-   'Wet season', 'Dry season', CURRENT_TIMESTAMP);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

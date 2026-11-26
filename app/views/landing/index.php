@@ -440,8 +440,22 @@
             <p class="login-subtitle">MAO Information Management System</p>
           </div>
 
+          <?php
+          // Messages from the last login attempt / redirect (wrong password,
+          // "Please log in to continue", validation errors)
+          $loginMessages = pull_flashes();
+          foreach (errors() as $fieldErrors) {
+              foreach ((array) $fieldErrors as $msg) {
+                  $loginMessages[] = ['type' => 'danger', 'message' => $msg];
+              }
+          }
+          ?>
+          <?php foreach ($loginMessages as $m): ?>
+            <div class="login-alert login-alert-<?= e($m['type']) ?>" role="alert"><?= e($m['message']) ?></div>
+          <?php endforeach; ?>
+
           <label for="adminUsername">Username</label>
-          <input type="text" id="adminUsername" name="username" autocomplete="username" placeholder="Enter username" required />
+          <input type="text" id="adminUsername" name="username" autocomplete="username" placeholder="Enter username" value="<?= e(old('username')) ?>" required />
 
           <label for="adminPassword">Password</label>
           <input type="password" id="adminPassword" name="password" autocomplete="current-password" placeholder="Enter password" required />

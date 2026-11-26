@@ -12,7 +12,10 @@ return [
     // '' if the web server points at /public; '/mao-system/public' if under htdocs
     'base_url'        => rtrim($get('BASE_URL', ''), '/'),
     'timezone'        => 'Asia/Manila',
-    'session_timeout' => 1800,   // seconds of inactivity
+    // Seconds of inactivity before auto-logout. 0 = no idle logout (you stay
+    // logged in until you log out, or close the browser / all system tabs).
+    // Set SESSION_TIMEOUT in .env to turn the idle logout back on.
+    'session_timeout' => (int) $get('SESSION_TIMEOUT', '0'),
     'per_page'        => 15,
 
     'db' => [

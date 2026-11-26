@@ -31,34 +31,51 @@ class FarmerController extends Controller
         ];
         $result = Farmer::search($filters, (int) $this->input('page', 1));
 
+        // Register / View / Edit all happen in modals on this page.
+        // A modal opens on its own when asked (?register=1, ?edit={id}) or when
+        // the last save came back with validation errors or a duplicate warning.
+        $duplicate = $_SESSION['profile_duplicate'] ?? null;   // ['for' => 'register'|'edit', 'payload' => ...]
+        unset($_SESSION['profile_duplicate']);
+
+        $editId      = (string) $this->input('edit', '');
+        $editProfile = ctype_digit($editId) ? $this->loadProfile((int) $editId) : null;
+
         $this->view('farmers/index', [
-            'title'       => 'Farmer/Fisherfolk List',
-            'breadcrumbs' => [['Home', '/home'], ['Farmer/Fisherfolk Registry', null], ['Farmer/Fisherfolk List', null]],
-            'filters'     => $filters,
-            'result'      => $result,
-            'barangays'   => Lookup::barangays(),
+            'title'            => 'Registry',
+            'breadcrumbs'      => [['Home', '/home'], ['Registry', null]],
+            'filters'          => $filters,
+            'result'           => $result,
+            'barangays'        => Lookup::barangays(),
+            'openRegister'     => isset($_GET['register']) || ($duplicate['for'] ?? '') === 'register',
+            'editProfile'      => $editProfile,
+            'duplicatePayload' => $duplicate['payload'] ?? null,
+            'duplicateFor'     => $duplicate['for'] ?? null,
+            'scripts'          => ['js/duplicate-guard.js', 'js/registry.js'],
         ]);
     }
 
     // ------------------------------------------------------------------ register
 
+    /** No separate page: open the register modal on the list. */
     public function create(): void
     {
-        $this->renderForm('create');
+        $this->redirect(self::REGISTER_URL);
     }
+
+    private const REGISTER_URL = '/farmers?register=1';
 
     public function store(): void
     {
         $data  = $this->formData();
-        $clean = $this->validate($data, $this->rules(), '/farmers/create', self::LABELS);
+        $clean = $this->validate($data, $this->rules(), self::REGISTER_URL, self::LABELS);
 
         // Server-side duplicate guard
         $reason = trim((string) $this->input('duplicate_override_reason', ''));
         $result = DuplicateProfileService::check($clean);
         if ($result['level'] !== 'clear' && ($result['level'] === 'blocked' || mb_strlen($reason) < 5)) {
             flash_old($data);
-            $this->renderForm('create', null, DuplicateProfileService::toPayload($result));
-            return;
+            $_SESSION['profile_duplicate'] = ['for' => 'register', 'payload' => DuplicateProfileService::toPayload($result)];
+            $this->redirect(self::REGISTER_URL);
         }
 
         $profileData = [
@@ -134,16 +151,25 @@ class FarmerController extends Controller
     public function show(string $id): void
     {
         $profile = $this->findOr404($id);
+        if ($this->isAjax()) {   // View modal on the Registry list
+            $this->view('farmers/_details', ['profile' => $profile], null);
+            return;
+        }
         $this->view('farmers/show', [
             'title'       => Profile::fullName($profile),
-            'breadcrumbs' => [['Home', '/home'], ['Farmer/Fisherfolk Registry', '/farmers'], [Profile::fullName($profile), null]],
+            'breadcrumbs' => [['Home', '/home'], ['Registry', '/farmers'], [Profile::fullName($profile), null]],
             'profile'     => $profile,
         ]);
     }
 
     public function edit(string $id): void
     {
-        $this->renderForm('edit', $this->findOr404($id));
+        $profile = $this->findOr404($id);
+        if ($this->isAjax()) {   // Edit modal on the Registry list
+            $this->view('farmers/_edit_body', ['profile' => $profile, 'barangays' => Lookup::barangays()], null);
+            return;
+        }
+        $this->renderForm('edit', $profile);
     }
 
     public function delete(string $id): void
@@ -182,7 +208,8 @@ class FarmerController extends Controller
         $profile = $this->findOr404($id);
         $data    = $this->formData() + ['status' => (string) $this->input('status', '')];
         $rules   = $this->rules((int) $profile['id']) + ['status' => 'required|in:' . implode(',', array_keys(Profile::STATUSES))];
-        $clean   = $this->validate($data, $rules, "/farmers/{$profile['id']}/edit", self::LABELS);
+        $back    = '/farmers?edit=' . $profile['id'];   // reopens the Edit modal on the list
+        $clean   = $this->validate($data, $rules, $back, self::LABELS);
 
         $reason = trim((string) $this->input('duplicate_override_reason', ''));
         $result = ['level' => 'clear', 'matches' => []];
@@ -190,8 +217,8 @@ class FarmerController extends Controller
             $result = DuplicateProfileService::check($clean, (int) $profile['id']);
             if ($result['level'] !== 'clear' && ($result['level'] === 'blocked' || mb_strlen($reason) < 5)) {
                 flash_old($data);
-                $this->renderForm('edit', $profile, DuplicateProfileService::toPayload($result));
-                return;
+                $_SESSION['profile_duplicate'] = ['for' => 'edit', 'payload' => DuplicateProfileService::toPayload($result)];
+                $this->redirect($back);
             }
         }
 
@@ -249,21 +276,18 @@ class FarmerController extends Controller
                 ['matched_ids' => array_column($result['matches'], 'id')], 'Duplicate override: ' . $reason);
         }
 
-        flash('success', 'Profile updated.');
-        $this->redirect('/farmers/' . $profile['id']);
+        flash('success', Profile::fullName($profileData + $profile) . ' was updated.');
+        $this->redirect('/farmers');
     }
 
     // ------------------------------------------------------------------ helpers
 
     private function renderForm(string $mode, ?array $profile = null, ?array $duplicatePayload = null): void
     {
-        $name  = $profile ? Profile::fullName($profile) : null;
-        $title = $mode === 'create' ? 'Register Farmer/Fisherfolk' : 'Edit Profile';
-        $crumbs = [['Home', '/home'], ['Farmer/Fisherfolk Registry', '/farmers']];
-        if ($mode === 'edit') {
-            $crumbs[] = [$name, '/farmers/' . $profile['id']];
-        }
-        $crumbs[] = [$title, null];
+        // Only the edit page uses this now; registering happens in the list's modal
+        $name   = $profile ? Profile::fullName($profile) : null;
+        $title  = 'Edit Profile';
+        $crumbs = [['Home', '/home'], ['Registry', '/farmers'], [$name, '/farmers/' . $profile['id']], [$title, null]];
 
         $this->view('farmers/' . $mode, [
             'title'            => $title,
@@ -277,19 +301,37 @@ class FarmerController extends Controller
 
     private function findOr404(string $id): array
     {
-        $profile = ctype_digit($id) ? Profile::withBarangay((int) $id) : null;
+        $profile = ctype_digit($id) ? $this->loadProfile((int) $id) : null;
         if (!$profile) {
             abort(404, 'Profile not found.');
         }
-        
-        // Add livelihood info
+        return $profile;
+    }
+
+    /** Profile + livelihood details, or null if it doesn't exist. */
+    private function loadProfile(int $id): ?array
+    {
+        $profile = Profile::withBarangay($id);
+        if (!$profile) {
+            return null;
+        }
+
         $livelihoods = Profile::getLivelihoods((int) $profile['id']);
-        $profile['has_farming'] = $livelihoods['farming'] !== null;
-        $profile['has_fishery'] = $livelihoods['fishery'] !== null;
+        $profile['has_farming']   = $livelihoods['farming'] !== null;
+        $profile['has_fishery']   = $livelihoods['fishery'] !== null;
         $profile['farming_rsbsa'] = $livelihoods['farming']['rsbsa_no'] ?? null;
         $profile['fishery_rsbsa'] = $livelihoods['fishery']['rsbsa_no'] ?? null;
-        $profile['fishr_no'] = $livelihoods['fishery']['fishr_no'] ?? null;
-        
+        $profile['fishr_no']      = $livelihoods['fishery']['fishr_no'] ?? null;
+
+        // Fields the shared form reads (they were missing, so Edit showed them blank)
+        $profile['rsbsa_no'] = $profile['farming_rsbsa'] ?? $profile['fishery_rsbsa'];
+        $profile['livelihood_type'] = match (true) {
+            $profile['has_farming'] && $profile['has_fishery'] => 'both',
+            $profile['has_fishery'] => 'fisherfolk',
+            $profile['has_farming'] => 'farmer',
+            default => '',
+        };
+
         return $profile;
     }
 

@@ -45,9 +45,10 @@ class Ui
         return $html . '</div>';
     }
 
-    public static function emptyState(string $title, string $message = '', string $actionHtml = ''): string
+    public static function emptyState(string $title, string $message = '', string $actionHtml = '', string $icon = 'inbox'): string
     {
-        return '<div class="empty-state"><div class="empty-title">' . e($title) . '</div>'
+        return '<div class="empty-state"><span class="empty-icon" aria-hidden="true"><i class="bi bi-' . e($icon) . '"></i></span>'
+            . '<div class="empty-title">' . e($title) . '</div>'
             . ($message !== '' ? '<p class="mb-2">' . e($message) . '</p>' : '')
             . $actionHtml . '</div>';
     }
@@ -60,15 +61,17 @@ class Ui
      */
     public static function filterBar(string $action, array $fields, array $values = []): string
     {
-        $html = '<form method="get" action="' . e(url($action)) . '" class="filter-bar" data-auto-submit>';
+        // Sits on top of the table as the first part of one panel (see .filter-bar + .table-wrap)
+        $html = '<form method="get" action="' . e(url($action)) . '" class="filter-bar" data-auto-submit role="search">';
         $active = false;
         foreach ($fields as $f) {
             $name = $f['name'];
             $val  = (string) ($values[$name] ?? '');
             $active = $active || $val !== '';
             if (($f['type'] ?? 'select') === 'search') {
-                $html .= '<input type="search" class="form-control filter-search" name="' . e($name) . '" value="' . e($val)
-                    . '" placeholder="' . e($f['placeholder'] ?? 'Search') . '">';
+                $html .= '<div class="filter-search"><i class="bi bi-search" aria-hidden="true"></i>'
+                    . '<input type="search" class="form-control" name="' . e($name) . '" value="' . e($val)
+                    . '" placeholder="' . e($f['placeholder'] ?? 'Search') . '" aria-label="' . e($f['placeholder'] ?? 'Search') . '"></div>';
                 continue;
             }
             $html .= '<select class="form-select" name="' . e($name) . '" aria-label="' . e($f['all'] ?? $name) . '">';
@@ -81,7 +84,7 @@ class Ui
         }
         $html .= '<button class="btn btn-outline-secondary btn-sm" type="submit">Search</button>';
         if ($active) {
-            $html .= '<a class="btn btn-sm btn-link text-muted" href="' . e(url($action)) . '">Clear</a>';
+            $html .= '<a class="btn btn-sm btn-link filter-clear" href="' . e(url($action)) . '"><i class="bi bi-x-lg" aria-hidden="true"></i> Clear filters</a>';
         }
         return $html . '</form>';
     }
@@ -125,8 +128,9 @@ class Ui
         $to   = min($page['total'], $page['page'] * $page['per_page']);
         $link = fn (int $n) => e(url($path) . '?' . http_build_query($query + ['page' => $n]));
 
-        $html  = '<div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">';
-        $html .= '<div class="text-muted small">Showing ' . $from . '&ndash;' . $to . ' of ' . number_format($page['total']) . '</div>';
+        // Bottom part of the list panel (see .table-wrap + .list-footer)
+        $html  = '<div class="list-footer">';
+        $html .= '<div class="text-muted small">Showing <strong>' . $from . '&ndash;' . $to . '</strong> of ' . number_format($page['total']) . '</div>';
         if ($page['pages'] > 1) {
             $html .= '<nav><ul class="pagination mb-0">';
             $html .= '<li class="page-item ' . ($page['page'] <= 1 ? 'disabled' : '') . '"><a class="page-link" href="' . $link(max(1, $page['page'] - 1)) . '">Previous</a></li>';

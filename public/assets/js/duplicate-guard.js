@@ -27,14 +27,28 @@
         constructor(form, modalEl) {
             this.form = form;
             this.el = modalEl;
-            this.modal = new bootstrap.Modal(modalEl);
+            // One warning modal can serve several forms (Register + Edit on the
+            // Registry list), so share one Bootstrap instance and only let the
+            // form that opened the warning react to it
+            this.modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             this.payload = null;
             this.confirmed = false;
             this.q = (name) => modalEl.querySelector('[data-dup="' + name + '"]');
 
+            // Form inside a modal (e.g. Register Profile): Bootstrap can't stack
+            // modals, so the form's modal steps aside while the warning shows
+            this.hostEl = form.closest('.modal');
+            this.host = this.hostEl ? bootstrap.Modal.getOrCreateInstance(this.hostEl) : null;
             form.addEventListener('submit', (e) => this.onSubmit(e));
-            this.q('confirm').addEventListener('click', () => this.onConfirm());
-            modalEl.addEventListener('hidden.bs.modal', () => this.setBusy(false));
+            this.q('confirm').addEventListener('click', () => {
+                if (DuplicateGuard.active === this) { this.onConfirm(); }
+            });
+            modalEl.addEventListener('hidden.bs.modal', () => {
+                if (DuplicateGuard.active !== this) { return; }
+                DuplicateGuard.active = null;
+                this.setBusy(false);
+                if (this.host && !this.confirmed) { this.host.show(); }   // "Back to form"
+            });
         }
 
         setBusy(busy) {
@@ -68,6 +82,7 @@
         }
 
         show(payload) {
+            DuplicateGuard.active = this;
             this.payload = payload;
             this.q('title').textContent = payload.title || 'Possible Duplicate Found';
             this.q('message').textContent = payload.message || '';
@@ -109,7 +124,12 @@
             reason.value = '';
             reason.classList.remove('is-invalid');
 
-            this.modal.show();
+            if (this.hostEl && this.hostEl.classList.contains('show')) {
+                this.hostEl.addEventListener('hidden.bs.modal', () => this.modal.show(), { once: true });
+                this.host.hide();
+            } else {
+                this.modal.show();
+            }
         }
 
         onConfirm() {
@@ -140,7 +160,10 @@
         if (!modalEl) { return; }
         document.querySelectorAll('form[data-duplicate-check]').forEach((form) => {
             const guard = new DuplicateGuard(form, modalEl);
-            if (window.__duplicatePayload) { guard.show(window.__duplicatePayload); }   // server-side fallback
+            // Server-side fallback. With several forms on a page,
+            // window.__duplicateFor names the one it belongs to (data-duplicate-key).
+            const forThisForm = !window.__duplicateFor || form.dataset.duplicateKey === window.__duplicateFor;
+            if (window.__duplicatePayload && forThisForm) { guard.show(window.__duplicatePayload); }
         });
     });
 

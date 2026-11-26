@@ -1,57 +1,29 @@
 <?php
 /**
- * Sidebar definition (from the final screen checklist).
- * 'link'  => single item        ['type','label','path']
- * 'section' => optional small heading printed above the entry (Main / Processes / Other)
- * 'group' => collapsible group  ['type','id','tag','label','items' => [[label, path], ...], 'roles'?]
- * Forms, edit and detail pages are NOT listed here; they open from list screens.
+ * Sidebar: one link per module, record types are tabs inside each page
+ * (checklist: "Resources, GIS, Monitoring, and Programs/Assistance may each be
+ * implemented as one page with tabs or filters").
+ *
+ * 'link' => ['type','label','path','icon', 'match'?, 'roles'?, 'section'?]
+ *   match   extra path prefixes that keep this link highlighted (sub-pages)
+ *   roles   only these roles see it
+ *   section small heading printed above the entry
+ * Forms, edit and detail pages are NOT listed here; they open from the pages.
  */
 return [
-    ['type' => 'link', 'label' => 'Dashboard', 'path' => '/home', 'icon' => 'grid-1x2'],
-
-    ['type' => 'group', 'id' => 'p1', 'tag' => '1.0', 'label' => 'Farmer/Fisherfolk Registry', 'icon' => 'people', 'items' => [
-        ['Farmer/Fisherfolk List', '/farmers', 'person-lines-fill'],
-        ['Register Farmer/Fisherfolk', '/farmers/create', 'person-plus'],
-    ]],
-
-    ['type' => 'group', 'id' => 'p2', 'tag' => '2.0', 'label' => 'Agricultural Resources', 'icon' => 'basket', 'items' => [
-        ['Farm Records', '/farms', 'tree'],
-        ['Fishery Records', '/fishery', 'water'],
-        ['Livestock and Poultry', '/livestock', 'egg'],
-        ['Equipment Inventory', '/equipment', 'tools'],
-        ['Organizations', '/organizations', 'building'],
-    ]],
-
-    ['type' => 'group', 'id' => 'p3', 'tag' => '3.0', 'label' => 'GIS Mapping', 'icon' => 'geo-alt', 'items' => [
-        ['Map Overview', '/map', 'map'],
-        ['Farm Locations', '/map/farms', 'geo'],
-        ['Fishery Locations', '/map/fishery', 'pin-map'],
-    ]],
-
-    ['type' => 'group', 'id' => 'p4', 'tag' => '4.0', 'label' => 'Agricultural Monitoring', 'icon' => 'activity', 'items' => [
-        ['Monitoring Overview', '/monitoring', 'speedometer2'],
-        ['Production Monitoring', '/monitoring/production', 'graph-up-arrow'],
-        ['Damage and Pest Monitoring', '/monitoring/damage', 'bug'],
-        ['Training and Activities', '/monitoring/training', 'calendar-event'],
-    ]],
-
-    ['type' => 'group', 'id' => 'p5', 'tag' => '5.0', 'label' => 'Programs and Assistance', 'icon' => 'hand-thumbs-up', 'items' => [
-        ['Programs and Projects', '/programs', 'clipboard-data'],          // detail page has tabs: Overview | Beneficiaries | Distributions
-        ['Assistance Distribution', '/assistance', 'box-seam'],
-        ['Assistance History', '/assistance/history', 'clock-history'],
-    ]],
-
-    ['type' => 'group', 'id' => 'p6', 'tag' => '6.0', 'label' => 'Reports', 'icon' => 'bar-chart-line', 'items' => [
-        ['Farmer and Resource Reports', '/reports/group/farmer-resource', 'file-earmark-bar-graph'],
-        ['Production and Monitoring Reports', '/reports/group/production-monitoring', 'graph-up'],
-        ['Programs and Assistance Reports', '/reports/group/programs-assistance', 'file-earmark-text'],
-        ['Summary Reports', '/reports/group/summary', 'clipboard2-check'],
-    ]],
-
-    ['type' => 'group', 'section' => 'Other', 'id' => 'sys', 'tag' => '', 'label' => 'System Management', 'icon' => 'gear', 'roles' => ['agriculturist'], 'items' => [
-        ['User Management', '/system/users', 'people'],
-        ['Access Control', '/system/access-control', 'shield-lock'],
-        ['Backup and Security', '/system/backup', 'database-down'],
-        ['System Settings', '/system/settings', 'sliders'],
-    ]],
+    ['type' => 'link', 'label' => 'Dashboard',  'path' => '/home',       'icon' => 'grid-1x2'],
+    // 1.0 Registry: list + Register / View / Edit / Delete modals
+    ['type' => 'link', 'label' => 'Registry',   'path' => '/farmers',    'icon' => 'people',  'match' => ['/profiles']],
+    // 2.0 Tabs: Farms, Fishery, Livestock, Equipment, Organizations
+    ['type' => 'link', 'label' => 'Resources',  'path' => '/resources',  'icon' => 'basket'],
+    // 3.0 One map with layers and filters
+    ['type' => 'link', 'label' => 'GIS Map',    'path' => '/map',        'icon' => 'geo-alt'],
+    // 4.0 Tabs: Overview, Production, Damage & Pest, Trainings
+    ['type' => 'link', 'label' => 'Monitoring', 'path' => '/monitoring', 'icon' => 'activity'],
+    // 5.0 Tabs: Programs, Distribution, History (+ program detail pages)
+    ['type' => 'link', 'label' => 'Programs',   'path' => '/programs',   'icon' => 'hand-thumbs-up', 'match' => ['/assistance', '/beneficiaries']],
+    // 6.0 Reports Center + one report template
+    ['type' => 'link', 'label' => 'Reports',    'path' => '/reports',    'icon' => 'bar-chart-line'],
+    // System: Users, Access, Audit Log, Backup, Settings (Agriculturist only)
+    ['type' => 'link', 'section' => 'Other', 'label' => 'System', 'path' => '/system', 'icon' => 'gear', 'roles' => ['agriculturist']],
 ];

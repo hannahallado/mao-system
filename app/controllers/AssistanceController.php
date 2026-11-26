@@ -23,7 +23,7 @@ class AssistanceController extends Controller
         ];
         $this->view('assistance/index', [
             'title'       => 'Assistance Distribution',
-            'breadcrumbs' => [['Home', '/home'], ['Programs and Assistance', null], ['Assistance Distribution', null]],
+            'breadcrumbs' => [['Home', '/home'], ['Programs', '/programs'], ['Distribution', null]],
             'filters'     => $filters,
             'result'      => AssistanceRecord::search($filters, (int) $this->input('page', 1)),
             'programs'    => Program::options(),
@@ -171,7 +171,7 @@ class AssistanceController extends Controller
         }
         $this->view('assistance/history', [
             'title'       => 'Assistance History',
-            'breadcrumbs' => [['Home', '/home'], ['Programs and Assistance', null], ['Assistance History', null]],
+            'breadcrumbs' => [['Home', '/home'], ['Programs', '/programs'], ['History', null]],
             'by'          => $by,
             'q'           => $q,
             'people'      => $people,
@@ -194,7 +194,7 @@ class AssistanceController extends Controller
         $profile['has_fishery'] = $live['fishery'] !== null;
         $this->view('assistance/profile-history', [
             'title'       => 'Assistance History',
-            'breadcrumbs' => [['Home', '/home'], ['Programs and Assistance', null], ['Assistance History', '/assistance/history'], [Profile::fullName($profile), null]],
+            'breadcrumbs' => [['Home', '/home'], ['Programs', '/programs'], ['History', '/assistance/history'], [Profile::fullName($profile), null]],
             'profile'     => $profile,
             'records'     => AssistanceRecord::timelineForProfile((int) $profile['id']),
             'menu_active' => '/assistance/history',
@@ -240,7 +240,7 @@ class AssistanceController extends Controller
         
         $this->view('assistance/create', [
             'title'            => 'Record Distribution',
-            'breadcrumbs'      => [['Home', '/home'], ['Programs and Assistance', null], ['Assistance Distribution', '/assistance'], ['Record Distribution', null]],
+            'breadcrumbs'      => [['Home', '/home'], ['Programs', '/programs'], ['Distribution', '/assistance'], ['Record Distribution', null]],
             'menu_active'      => '/assistance',
             'programs'         => Program::options(true),
             'programId'        => $programId,

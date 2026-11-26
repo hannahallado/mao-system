@@ -23,21 +23,6 @@ $presetName = $preset === 'farms' ? 'Farm' : ($preset === 'fishery' ? 'Fishery' 
 <div class="page-head">
     <div>
         <h1><?= e($title) ?></h1>
-        <p class="page-sub">
-            <?= $preset === 'farms' ? 'Farm locations across the municipality'
-                : ($preset === 'fishery' ? 'Fishery locations across the municipality' : 'Farm and fishery locations across the municipality') ?>
-        </p>
-    </div>
-    <div class="page-actions">
-        <?php if ($preset !== 'all'): ?>
-            <a class="btn btn-outline-secondary btn-sm" href="<?= e(url('/map')) ?>">Map Overview</a>
-        <?php endif; ?>
-        <?php if ($preset !== 'farms'): ?>
-            <a class="btn btn-outline-secondary btn-sm" href="<?= e(url('/map/farms')) ?>">Farm Locations</a>
-        <?php endif; ?>
-        <?php if ($preset !== 'fishery'): ?>
-            <a class="btn btn-outline-secondary btn-sm" href="<?= e(url('/map/fishery')) ?>">Fishery Locations</a>
-        <?php endif; ?>
     </div>
 </div>
 

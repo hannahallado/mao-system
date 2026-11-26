@@ -20,6 +20,10 @@ $router->post('/logout', 'AuthController@logout');
 $router->get('/',     'LandingController@index', ['public' => true]);
 $router->get('/home', 'HomeController@index');
 
+// --- Notifications (top bar bell) ---
+$router->get('/notifications/open',      'NotificationController@open');
+$router->post('/notifications/read-all', 'NotificationController@readAll');
+
 // --- Dev: component style guide ---
 $router->get('/ui-kit', 'StyleGuideController@index');
 
@@ -33,38 +37,31 @@ $router->get('/farmers/{id}/edit',        'FarmerController@edit');
 $router->post('/farmers/{id}',            'FarmerController@update');
 $router->post('/farmers/{id}/delete',     'FarmerController@delete');
 
-// --- 2.0 Record Agricultural Resources ---
-$router->get('/farms', 'FarmController@index');
-$router->get('/farms/create', 'FarmController@create');
-$router->get('/farms/{id}', 'FarmController@show');
-$router->get('/fishery', 'FisheryController@index');
-$router->get('/fishery/create', 'FisheryController@create');
-$router->get('/fishery/{id}', 'FisheryController@show');
-$router->get('/livestock', 'LivestockController@index');
-$router->get('/livestock/create', 'LivestockController@create');
-$router->get('/equipment', 'EquipmentController@index');
-$router->get('/equipment/create', 'EquipmentController@create');
-$router->get('/organizations', 'OrganizationController@index');
-$router->get('/organizations/create', 'OrganizationController@create');
-$router->get('/organizations/{id}', 'OrganizationController@show');
+// --- 2.0 Record Agricultural Resources (one page, tabs: config/modules.php) ---
+$router->get('/resources',                     'ModuleController@resources');
+$router->post('/resources/{tab}',              'ModuleController@resourcesStore');
+$router->post('/resources/{tab}/{id}/delete',  'ModuleController@resourcesDelete');
+$router->post('/resources/{tab}/{id}',         'ModuleController@resourcesUpdate');
+// Old one-page-per-record URLs open the matching tab
+foreach (['/farms', '/fishery', '/livestock', '/equipment', '/organizations'] as $old) {
+    $router->get($old, 'ModuleController@legacy');
+    $router->get($old . '/{x}', 'ModuleController@legacy');
+}
 
 // --- 3.0 Map Farm and Fishery Locations (GIS) ---
 $router->get('/map', 'MapController@index');
 $router->get('/map/farms', 'MapController@farms');
 $router->get('/map/fishery', 'MapController@fishery');
 
-// --- 4.0 Monitor Agricultural Activities ---
-$router->get('/monitoring', 'MonitoringController@index');
-$router->get('/monitoring/production', 'ProductionController@index');
-$router->get('/monitoring/production/create', 'ProductionController@create');
-$router->post('/monitoring/production/create', 'ProductionController@store');
-$router->get('/monitoring/damage', 'DamageController@index');
-$router->get('/monitoring/damage/create', 'DamageController@create');
-$router->post('/monitoring/damage/create', 'DamageController@store');
-$router->get('/monitoring/training', 'TrainingController@index');
-$router->get('/monitoring/training/create', 'TrainingController@create');
-$router->post('/monitoring/training/create', 'TrainingController@store');
-$router->get('/monitoring/training/{id}', 'TrainingController@show');
+// --- 4.0 Monitor Agricultural Activities (one page, tabs: config/modules.php) ---
+$router->get('/monitoring',                    'ModuleController@monitoring');
+foreach (['/monitoring/production', '/monitoring/damage', '/monitoring/training'] as $old) {
+    $router->get($old, 'ModuleController@legacy');
+    $router->get($old . '/{x}', 'ModuleController@legacy');
+}
+$router->post('/monitoring/{tab}',             'ModuleController@monitoringStore');
+$router->post('/monitoring/{tab}/{id}/delete', 'ModuleController@monitoringDelete');
+$router->post('/monitoring/{tab}/{id}',        'ModuleController@monitoringUpdate');
 
 // --- 5.0 Administer Agricultural Programs ---
 // Programs: only the Municipal Agriculturist creates/edits (access matrix); everyone can view.
@@ -96,12 +93,14 @@ $router->get('/reports',                'ReportController@index');
 $router->get('/reports/group/{group}',  'ReportController@group');
 $router->get('/reports/{slug}',         'ReportController@show');
 
-// --- System Management (Municipal Agriculturist only) ---
-$router->get('/system/users', 'UserController@index', ['roles' => ['agriculturist']]);
-$router->get('/system/users/create', 'UserController@create', ['roles' => ['agriculturist']]);
-$router->post('/system/users/{id}/status', 'UserController@setStatus', ['roles' => ['agriculturist']]);
-$router->get('/system/access-control', 'AccessControlController@index', ['roles' => ['agriculturist']]);
-$router->get('/system/backup', 'BackupController@index', ['roles' => ['agriculturist']]);
-$router->post('/system/backup', 'BackupController@backupNow', ['roles' => ['agriculturist']]);
-$router->get('/system/settings', 'SettingController@index', ['roles' => ['agriculturist']]);
-$router->post('/system/settings', 'SettingController@save', ['roles' => ['agriculturist']]);
+// --- System (Municipal Agriculturist only): one page, tabs ---
+$agri = ['roles' => ['agriculturist']];
+$router->get('/system',                    'SystemController@index',        $agri);
+$router->post('/system/users',             'SystemController@storeUser',    $agri);
+$router->post('/system/users/{id}/status', 'SystemController@toggleUser',   $agri);
+$router->post('/system/users/{id}',        'SystemController@updateUser',   $agri);
+$router->post('/system/backup',            'SystemController@backup',       $agri);
+$router->post('/system/settings',          'SystemController@saveSettings', $agri);
+foreach (['/system/users', '/system/users/create', '/system/access-control', '/system/backup', '/system/settings'] as $old) {
+    $router->get($old, 'SystemController@legacy', $agri);   // old links open the matching tab
+}

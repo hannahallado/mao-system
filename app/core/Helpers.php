@@ -125,6 +125,49 @@ function current_path(): string
 }
 
 /** Sidebar definition (config/menu.php). */
+/** English plural of a noun phrase: "main commodity" -> "main commodities". */
+function plural(string $phrase): string
+{
+    return match (true) {
+        (bool) preg_match('/[^aeiou]y$/i', $phrase)   => substr($phrase, 0, -1) . 'ies',
+        (bool) preg_match('/(s|x|z|ch|sh)$/i', $phrase) => $phrase . (preg_match('/(status|s)$/i', $phrase) ? '' : 'es'),
+        default                                         => $phrase . 's',
+    };
+}
+
+/** "5 minutes ago", "Yesterday", "in 3 days", "Tomorrow" (falls back to a date after a week). */
+function time_ago(string $datetime): string
+{
+    $ts = strtotime($datetime);
+    if (!$ts) {
+        return '';
+    }
+    $diff = time() - $ts;
+    $dayDiff = (int) round((strtotime(date('Y-m-d', time())) - strtotime(date('Y-m-d', $ts))) / 86400);
+    if ($diff < 0) {   // future
+        return match (true) {
+            $dayDiff === 0  => 'Today',
+            $dayDiff === -1 => 'Tomorrow',
+            $dayDiff >= -14 => 'In ' . -$dayDiff . ' days',
+            default         => date('M j, Y', $ts),
+        };
+    }
+    return match (true) {
+        $diff < 60      => 'Just now',
+        $diff < 3600    => count_label(intdiv($diff, 60), 'minute') . ' ago',
+        $dayDiff === 0  => count_label(intdiv($diff, 3600), 'hour') . ' ago',
+        $dayDiff === 1  => 'Yesterday',
+        $dayDiff < 7    => $dayDiff . ' days ago',
+        default         => date('M j, Y', $ts),
+    };
+}
+
+/** "1 boat", "3 boats". */
+function count_label(int $n, string $noun): string
+{
+    return number_format($n) . ' ' . ($n === 1 ? $noun : plural($noun));
+}
+
 function menu(): array
 {
     static $menu = null;
@@ -135,9 +178,9 @@ function menu(): array
  * The sidebar item that matches the current page: the LONGEST item path that
  * equals the current path or is a parent of it (so /map/farms beats /map).
  */
-function active_menu_path(array $menu): ?string
+function active_menu_path(array $menu, ?string $current = null): ?string
 {
-    $current = current_path();
+    $current = $current ?? current_path();
     $best    = null;
     foreach ($menu as $entry) {
         $paths = $entry['type'] === 'group' ? array_column($entry['items'], 1) : [$entry['path']];
@@ -145,6 +188,12 @@ function active_menu_path(array $menu): ?string
             if (($current === $path || str_starts_with($current, $path . '/'))
                 && ($best === null || strlen($path) > strlen($best))) {
                 $best = $path;
+            }
+        }
+        // Extra prefixes that belong to a link (e.g. /assistance under Programs)
+        foreach ($entry['match'] ?? [] as $prefix) {
+            if (($current === $prefix || str_starts_with($current, $prefix . '/')) && $best === null) {
+                $best = $entry['path'];
             }
         }
     }
