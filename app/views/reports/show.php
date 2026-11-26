@@ -102,11 +102,14 @@ $exportName = $slug . '-' . date('Y-m-d');
     <header class="report-doc-head">
         <div class="report-doc-org">
             <div class="report-doc-office"><?= e($settings['office_name']) ?></div>
-            <div class="report-doc-place"><?= e(trim($settings['municipality'] . ', ' . $settings['province'], ', ')) ?></div>
+            <div class="report-doc-place"><?= e(($settings['report_header'] ?? '') !== '' ? $settings['report_header'] : trim($settings['municipality'] . ', ' . $settings['province'], ', ')) ?></div>
         </div>
         <h2 class="report-doc-title"><?= e($report['title']) ?></h2>
         <dl class="report-doc-meta">
             <div><dt>Reporting period</dt><dd><?= e($period) ?></dd></div>
+            <?php if (($settings['reporting_start'] ?? '') !== '' && ($settings['reporting_end'] ?? '') !== ''): ?>
+                <div><dt>Office reporting period</dt><dd><?= e(format_date($settings['reporting_start']) . ' to ' . format_date($settings['reporting_end'])) ?></dd></div>
+            <?php endif; ?>
             <div><dt>Filters</dt><dd><?= e($applied ? implode(' · ', $applied) : 'None (all records)') ?></dd></div>
             <div><dt>Generated</dt><dd><?= e(date('M j, Y g:i A')) ?> by <?= e(Auth::user()['full_name'] ?? '') ?></dd></div>
             <div><dt>Records</dt><dd><?= number_format(count($rows)) ?></dd></div>

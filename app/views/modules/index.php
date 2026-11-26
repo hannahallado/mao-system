@@ -167,6 +167,10 @@ if (!$isOverview && $ready && $canWrite) {
         $col = $f['col'] ?? 'col-md-6';
         $req = !empty($f['required']);
         $value = $editing ? RecordModule::formValues($tab, $editRow)[$name] : ($f['default'] ?? '');
+        // "+ Add" from a profile page: ?form=add&profile_id=N picks that person
+        if (!$editing && $name === 'profile_id' && ctype_digit((string) ($_GET['profile_id'] ?? ''))) {
+            $value = (string) $_GET['profile_id'];
+        }
         switch ($f['type']) {
             case 'textarea':
                 $fieldHtml .= Ui::textarea($name, $f['label'], ['value' => $value, 'required' => $req, 'col' => $col, 'help' => $f['help'] ?? null, 'rows' => 2]);

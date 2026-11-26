@@ -36,7 +36,7 @@ class MapController extends Controller
 
         if (RecordModule::tableReady('farms')) {
             $rows = Model::raw(
-                "SELECT f.id, f.farm_name, f.profile_id, f.commodity, f.water_source, f.latitude, f.longitude, f.boundary_geojson,
+                "SELECT f.id, f.farm_name, f.profile_id, f.commodity, f.water_source, f.area_ha, f.tenure, f.latitude, f.longitude, f.boundary_geojson,
                         b.name AS barangay, CONCAT(p.last_name, ', ', p.first_name) AS owner
                  FROM farms f
                  JOIN barangays b ON b.id = f.barangay_id
@@ -54,6 +54,10 @@ class MapController extends Controller
                     'latitude'   => $this->coordinate($r['latitude'], -90, 90),
                     'longitude'  => $this->coordinate($r['longitude'], -180, 180),
                     'boundary'   => $this->geoJson($r['boundary_geojson']),
+                    'owner'      => $r['owner'],
+                    'description' => isset($fields['tenure']['options'][$r['tenure']]) ? 'Tenure: ' . $fields['tenure']['options'][$r['tenure']] : null,
+                    'area'       => $r['area_ha'] !== null ? rtrim(rtrim(number_format((float) $r['area_ha'], 4), '0'), '.') . ' ha' : null,
+                    'status'     => null,
                     'recordUrl'  => url('/resources?tab=farms&q=' . rawurlencode($r['farm_name'])),
                     'profileUrl' => url('/farmers/' . (int) $r['profile_id']),
                 ];
@@ -62,7 +66,7 @@ class MapController extends Controller
 
         if (RecordModule::tableReady('fishery_assets')) {
             $rows = Model::raw(
-                "SELECT a.id, a.name, a.profile_id, a.asset_type, a.species, a.latitude, a.longitude,
+                "SELECT a.id, a.name, a.profile_id, a.asset_type, a.species, a.size_capacity, a.area_ha, a.status, a.latitude, a.longitude,
                         b.name AS barangay, CONCAT(p.last_name, ', ', p.first_name) AS owner
                  FROM fishery_assets a
                  JOIN barangays b ON b.id = a.barangay_id
@@ -80,6 +84,10 @@ class MapController extends Controller
                     'latitude'   => $this->coordinate($r['latitude'], -90, 90),
                     'longitude'  => $this->coordinate($r['longitude'], -180, 180),
                     'boundary'   => null,
+                    'owner'      => $r['owner'],
+                    'description' => $r['size_capacity'] ?: null,
+                    'area'       => $r['area_ha'] !== null ? rtrim(rtrim(number_format((float) $r['area_ha'], 4), '0'), '.') . ' ha' : null,
+                    'status'     => $fields['status']['options'][$r['status']] ?? $r['status'],
                     'recordUrl'  => url('/resources?tab=fishery&q=' . rawurlencode($r['name'])),
                     'profileUrl' => url('/farmers/' . (int) $r['profile_id']),
                 ];

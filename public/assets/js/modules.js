@@ -146,6 +146,7 @@
     const params = new URLSearchParams(location.search);
     params.delete("form");
     params.delete("id");
+    params.delete("profile_id");
     history.replaceState(null, "", location.pathname + "?" + params.toString() + location.hash);
   }
 })();

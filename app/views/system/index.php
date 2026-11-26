@@ -20,6 +20,12 @@ $tabUrl = fn (string $key, array $q = []) => url('/system?' . http_build_query([
         $userData[$u['id']] = ['full_name' => $u['full_name'], 'username' => $u['username'], 'role' => $u['role'], 'sector' => $u['sector']];
     }
     ?>
+    <?= str_replace('</form>', '<input type="hidden" name="tab" value="users"></form>', Ui::filterBar('/system', [
+        ['type' => 'search', 'name' => 'q', 'placeholder' => 'Search name or username'],
+        ['name' => 'role', 'all' => 'All roles', 'options' => SystemController::ROLES],
+        ['name' => 'sector', 'all' => 'All sectors', 'options' => array_diff_key(SystemController::SECTORS, ['all' => 1]) + ['all' => 'All sectors (agriculturists)']],
+        ['name' => 'status', 'all' => 'All statuses', 'options' => ['active' => 'Active', 'inactive' => 'Deactivated']],
+    ], $userFilters)) ?>
     <?= Ui::dataTable([
         ['label' => 'Name', 'render' => fn ($u) => '<span class="fw-semibold">' . e($u['full_name']) . '</span>'
             . ((int) $u['id'] === Auth::id() ? ' <span class="badge badge-soft-muted">You</span>' : '')],
@@ -40,7 +46,8 @@ $tabUrl = fn (string $key, array $q = []) => url('/system?' . http_build_query([
             }
             return $html . '</div>';
         }],
-    ], $users, ['empty' => Ui::emptyState('No users', 'Add the first account.')]) ?>
+    ], $listUsers, ['empty' => array_filter($userFilters) ? Ui::emptyState('No matching users', 'Try a different search or set a filter back to "All".', '', 'search')
+                                                           : Ui::emptyState('No users', 'Add the first account.')]) ?>
     <p class="text-muted small mt-2">Accounts are deactivated instead of deleted, so names stay in the audit log. Deactivated users can't log in.</p>
 
     <div class="modal fade register-modal" id="userModal" tabindex="-1" aria-labelledby="userModalTitle" aria-hidden="true" data-bs-backdrop="static"
@@ -186,19 +193,47 @@ $tabUrl = fn (string $key, array $q = []) => url('/system?' . http_build_query([
             <div class="card h-100"><div class="card-body">
                 <h6 class="card-title">Download a backup</h6>
                 <p class="small">Saves the whole database (all tables and records) as one <code>.sql</code> file. To restore it, open phpMyAdmin, select the database, and use <strong>Import</strong>.</p>
-                <form method="post" action="<?= url('/system/backup') ?>">
-                    <?= Csrf::field() ?>
-                    <button class="btn btn-primary" type="submit"><i class="bi bi-download" aria-hidden="true"></i> Download backup (.sql)</button>
-                </form>
+                <div class="d-flex flex-wrap gap-2">
+                    <form method="post" action="<?= url('/system/backup') ?>">
+                        <?= Csrf::field() ?>
+                        <input type="hidden" name="mode" value="download">
+                        <button class="btn btn-primary" type="submit"><i class="bi bi-download" aria-hidden="true"></i> Download backup (.sql)</button>
+                    </form>
+                    <form method="post" action="<?= url('/system/backup') ?>">
+                        <?= Csrf::field() ?>
+                        <input type="hidden" name="mode" value="server">
+                        <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-hdd" aria-hidden="true"></i> Save copy on server</button>
+                    </form>
+                </div>
+                <p class="small text-muted mt-2 mb-0">Server copies are saved in <code>storage/backups</code> on this computer and can't be opened from the browser.</p>
                 <hr>
                 <h6 class="card-title">Keep backups safe</h6>
                 <ul class="small mb-0">
                     <li>The file has personal data and password hashes. Store it on an office drive, not a personal phone or public cloud folder.</li>
                     <li>Make a backup at least once a week, and before any big change.</li>
                     <li>Keep a few older copies, and test restoring one now and then.</li>
-                    <li>Each download is recorded in the Audit Log.</li>
+                    <li>Each backup is recorded in the Audit Log.</li>
                 </ul>
             </div></div>
+        </div>
+        <div class="col-12 order-last">
+            <div class="card">
+                <div class="card-header">Backups saved on the server</div>
+                <?php if (!$storedBackups): ?>
+                    <?= Ui::emptyState('No server copies yet', 'Use "Save copy on server" to keep one in storage/backups.', '', 'hdd') ?>
+                <?php else: ?>
+                    <div class="table-scroll">
+                        <table class="table mb-0">
+                            <thead><tr><th>File</th><th>Created</th><th class="num">Size</th></tr></thead>
+                            <tbody>
+                                <?php foreach ($storedBackups as $b): ?>
+                                    <tr><td><code><?= e($b['file']) ?></code></td><td><?= e(date('M j, Y g:i A', $b['created'])) ?></td><td class="num"><?= number_format($b['size_kb']) ?> KB</td></tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
         <div class="col-lg-7">
             <div class="card h-100">
@@ -227,12 +262,16 @@ $tabUrl = fn (string $key, array $q = []) => url('/system?' . http_build_query([
             <?php
             $field = fn (string $key, string $col) => Ui::input($key, Setting::FIELDS[$key][0], [
                 'value' => $settings[$key] ?? '', 'col' => $col, 'maxlength' => Setting::FIELDS[$key][2],
-                'help' => Setting::FIELDS[$key][1], 'required' => $key === 'office_name', 'type' => $key === 'email' ? 'email' : 'text']);
+                'help' => Setting::FIELDS[$key][1], 'required' => in_array($key, ['office_name', 'wet_season_label', 'dry_season_label'], true),
+                'type' => $key === 'email' ? 'email' : (in_array($key, Setting::DATE_FIELDS, true) ? 'date' : 'text')]);
             ?>
             <?= Ui::section('Office', $field('office_name', 'col-md-6') . $field('municipality', 'col-md-3') . $field('province', 'col-md-3')
                 . $field('contact_no', 'col-md-6') . $field('email', 'col-md-6')) ?>
+            <?= Ui::section('Reports', $field('report_header', 'col-md-6') . $field('reporting_start', 'col-md-3') . $field('reporting_end', 'col-md-3'),
+                'The reporting period is printed on every report.') ?>
             <?= Ui::section('Report signatories', $field('prepared_by', 'col-md-4') . $field('approved_by', 'col-md-4') . $field('approved_title', 'col-md-4'),
                 'Printed at the bottom of every report. Leave "Prepared by" blank to use the name of whoever generates the report.') ?>
+            <?= Ui::section('Cropping seasons', $field('wet_season_label', 'col-md-6') . $field('dry_season_label', 'col-md-6')) ?>
         </div>
         <div class="card-footer d-flex justify-content-end">
             <button class="btn btn-primary" type="submit" <?= $settingsReady ? '' : 'disabled' ?>>Save settings</button>

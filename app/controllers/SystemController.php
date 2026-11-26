@@ -41,8 +41,23 @@ class SystemController extends Controller
             case 'users':
                 $form   = (string) $this->input('form', '');
                 $editId = (int) $this->input('id', 0);
+                $users  = Model::raw('SELECT id, full_name, username, role, sector, is_active, last_login_at, created_at FROM users ORDER BY is_active DESC, full_name');
+                $userFilters = [
+                    'q'      => trim((string) $this->input('q', '')),
+                    'role'   => (string) $this->input('role', ''),
+                    'sector' => (string) $this->input('sector', ''),
+                    'status' => (string) $this->input('status', ''),
+                ];
                 $data += [
-                    'users'    => Model::raw('SELECT id, full_name, username, role, sector, is_active, last_login_at, created_at FROM users ORDER BY is_active DESC, full_name'),
+                    'users'       => $users,   // all users: the edit modal needs every row
+                    'userFilters' => $userFilters,
+                    'listUsers'   => array_values(array_filter($users, function ($u) use ($userFilters) {
+                        $q = mb_strtolower($userFilters['q']);
+                        return ($q === '' || str_contains(mb_strtolower($u['full_name'] . ' ' . $u['username']), $q))
+                            && ($userFilters['role'] === '' || $u['role'] === $userFilters['role'])
+                            && ($userFilters['sector'] === '' || $u['sector'] === $userFilters['sector'])
+                            && ($userFilters['status'] === '' || (bool) $u['is_active'] === ($userFilters['status'] === 'active'));
+                    })),
                     'openForm' => $form === 'add' || ($form === 'edit' && $editId),
                     'editId'   => $form === 'edit' ? $editId : 0,
                 ];
@@ -54,6 +69,7 @@ class SystemController extends Controller
                 $data['tables'] = Model::raw(
                     'SELECT TABLE_NAME AS name, TABLE_ROWS AS approx_rows, ROUND((DATA_LENGTH + INDEX_LENGTH) / 1024) AS size_kb
                      FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = "BASE TABLE" ORDER BY TABLE_NAME', [config('db.name')]);
+                $data['storedBackups'] = $this->storedBackups();
                 break;
             case 'settings':
                 $data += ['settings' => Setting::all(), 'settingsReady' => Setting::ready()];
@@ -211,11 +227,65 @@ class SystemController extends Controller
 
     // ------------------------------------------------------------------ backup
 
-    /** Streams a full SQL dump (structure + data) of the application database. */
+    /** Server copies live here (web access blocked by storage/backups/.htaccess). */
+    private const BACKUP_DIR = BASE_PATH . '/storage/backups';
+
+    /**
+     * Full SQL dump (structure + data) of the application database.
+     * mode=download streams it to the browser; mode=server saves a copy in storage/backups.
+     */
     public function backup(): void
     {
-        $db   = Database::connect();
         $name = (string) config('db.name');
+
+        if ($this->input('mode') === 'server') {
+            if (!is_dir(self::BACKUP_DIR) || !is_writable(self::BACKUP_DIR)) {
+                flash('danger', 'The backup folder (storage/backups) is missing or not writable.');
+                $this->redirect('/system?tab=backup');
+            }
+            $file = 'mao-system-' . date('Ymd-His') . '-' . bin2hex(random_bytes(4)) . '.sql';
+            $path = self::BACKUP_DIR . '/' . $file;
+            $out  = fopen($path, 'xb');
+            if ($out === false) {
+                flash('danger', 'Could not create the backup file.');
+                $this->redirect('/system?tab=backup');
+            }
+            try {
+                $tables = $this->writeDump($out, $name);
+            } catch (Throwable $e) {
+                fclose($out);
+                @unlink($path);
+                throw $e;
+            }
+            fclose($out);
+            AuditService::log('create', 'backup', 0, null, ['tables' => $tables, 'file' => $file], 'Database backup saved on the server');
+            flash('success', 'Backup saved on the server: ' . $file);
+            $this->redirect('/system?tab=backup');
+        }
+
+        $file = $name . '-backup-' . date('Y-m-d-His') . '.sql';
+        header('Content-Type: application/sql; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $file . '"');
+        header('Cache-Control: no-store');
+        $out = fopen('php://output', 'wb');
+        $tables = $this->writeDump($out, $name);
+        fclose($out);
+        AuditService::log('create', 'backup', 0, null, ['tables' => $tables], 'Database backup downloaded');
+        exit;
+    }
+
+    /** Backups saved on the server, newest first. */
+    private function storedBackups(): array
+    {
+        $files = glob(self::BACKUP_DIR . '/mao-system-*.sql') ?: [];
+        usort($files, fn ($a, $b) => filemtime($b) <=> filemtime($a));
+        return array_map(fn ($p) => ['file' => basename($p), 'created' => filemtime($p), 'size_kb' => (int) ceil(filesize($p) / 1024)], $files);
+    }
+
+    /** Writes the dump to $out; returns the number of tables. */
+    private function writeDump($out, string $name): int
+    {
+        $db = Database::connect();
         $tables = array_column(Model::raw(
             'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = "BASE TABLE" ORDER BY TABLE_NAME', [$name]), 'TABLE_NAME');
         // Generated columns can't be inserted into
@@ -224,22 +294,15 @@ class SystemController extends Controller
             $generated[$c['TABLE_NAME']][$c['COLUMN_NAME']] = true;
         }
 
-        AuditService::log('create', 'backup', 0, null, ['tables' => count($tables)], 'Database backup downloaded');
-
-        $file = $name . '-backup-' . date('Y-m-d-His') . '.sql';
-        header('Content-Type: application/sql; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $file . '"');
-        header('Cache-Control: no-store');
-
-        echo "-- MAO Information System backup\n-- Database: $name\n-- Created: " . date('Y-m-d H:i:s') . ' by ' . (Auth::user()['username'] ?? '') . "\n"
+        fwrite($out, "-- MAO Information System backup\n-- Database: $name\n-- Created: " . date('Y-m-d H:i:s') . ' by ' . (Auth::user()['username'] ?? '') . "\n"
            . "-- Restore: create/select the database in phpMyAdmin, then Import this file.\n\n"
-           . "SET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS = 0;\nSET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';\n\n";
+           . "SET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS = 0;\nSET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';\n\n");
 
         foreach ($tables as $table) {
             $q = '`' . str_replace('`', '``', $table) . '`';
             $create = $db->query("SHOW CREATE TABLE $q")->fetch(PDO::FETCH_NUM)[1];
-            echo "-- --------------------------------------------------------\n-- Table $table\n"
-               . "DROP TABLE IF EXISTS $q;\n$create;\n\n";
+            fwrite($out, "-- --------------------------------------------------------\n-- Table $table\n"
+               . "DROP TABLE IF EXISTS $q;\n$create;\n\n");
 
             $stmt = $db->query("SELECT * FROM $q", PDO::FETCH_ASSOC);
             $batch = [];
@@ -249,17 +312,17 @@ class SystemController extends Controller
                 $cols ??= '(' . implode(', ', array_map(fn ($c) => '`' . str_replace('`', '``', $c) . '`', array_keys($row))) . ')';
                 $batch[] = '(' . implode(', ', array_map(fn ($v) => $v === null ? 'NULL' : $db->quote((string) $v), $row)) . ')';
                 if (count($batch) === 200) {
-                    echo "INSERT INTO $q $cols VALUES\n" . implode(",\n", $batch) . ";\n";
+                    fwrite($out, "INSERT INTO $q $cols VALUES\n" . implode(",\n", $batch) . ";\n");
                     $batch = [];
                 }
             }
             if ($batch) {
-                echo "INSERT INTO $q $cols VALUES\n" . implode(",\n", $batch) . ";\n";
+                fwrite($out, "INSERT INTO $q $cols VALUES\n" . implode(",\n", $batch) . ";\n");
             }
-            echo "\n";
+            fwrite($out, "\n");
         }
-        echo "SET FOREIGN_KEY_CHECKS = 1;\n";
-        exit;
+        fwrite($out, "SET FOREIGN_KEY_CHECKS = 1;\n");
+        return count($tables);
     }
 
     // ------------------------------------------------------------------ settings
@@ -273,12 +336,20 @@ class SystemController extends Controller
         $data = $rules = $labels = [];
         foreach (Setting::FIELDS as $key => [$label, , $max]) {
             $data[$key] = $this->input($key);
-            $rules[$key] = ($key === 'office_name' ? 'required' : 'nullable') . '|max:' . $max . ($key === 'email' ? '|email' : '');
+            $required = in_array($key, ['office_name', 'wet_season_label', 'dry_season_label'], true);
+            $rules[$key] = ($required ? 'required' : 'nullable') . '|max:' . $max
+                . ($key === 'email' ? '|email' : '') . (in_array($key, Setting::DATE_FIELDS, true) ? '|date' : '');
             $labels[$key] = $label;
         }
         $v = Validator::make($data, $rules, $labels);
-        if ($v->fails()) {
-            flash_errors($v->errors());
+        $errors = $v->errors();
+        $start = (string) ($data['reporting_start'] ?? '');
+        $end   = (string) ($data['reporting_end'] ?? '');
+        if (!$errors && $start !== '' && $end !== '' && $start > $end) {
+            $errors['reporting_end'][] = 'Reporting period end must be on or after the start date.';
+        }
+        if ($errors) {
+            flash_errors($errors);
             flash_old($data);
             $this->redirect('/system?tab=settings');
         }

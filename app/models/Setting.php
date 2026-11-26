@@ -12,11 +12,20 @@ class Setting
         'prepared_by'    => ['Reports: prepared by', 'Name printed in the "Prepared by" signature line.', 120],
         'approved_by'    => ['Reports: approved by', 'Name printed in the "Approved by" signature line.', 120],
         'approved_title' => ['Approver title', 'e.g. Municipal Agriculturist.', 80],
+        'report_header'    => ['Report header', 'Extra line under the office name on printed reports, e.g. "Pulupandan, Negros Occidental".', 200],
+        'reporting_start'  => ['Reporting period start', null, 10],
+        'reporting_end'    => ['Reporting period end', null, 10],
+        'wet_season_label' => ['Wet season label', 'Shown in Production records and reports.', 60],
+        'dry_season_label' => ['Dry season label', null, 60],
     ];
+
+    /** Keys holding YYYY-MM-DD dates. */
+    public const DATE_FIELDS = ['reporting_start', 'reporting_end'];
 
     private const DEFAULTS = [
         'office_name' => 'Municipal Agriculture Office', 'municipality' => 'Pulupandan',
         'province' => 'Negros Occidental', 'approved_title' => 'Municipal Agriculturist',
+        'wet_season_label' => 'Wet season', 'dry_season_label' => 'Dry season',
     ];
 
     private static ?array $cache = null;

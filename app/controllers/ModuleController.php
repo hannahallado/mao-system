@@ -178,7 +178,7 @@ class ModuleController extends Controller
         foreach ($tab['fields'] as $name => $f) {
             $input[$name] = $f['type'] === 'members' ? (array) ($_POST[$name] ?? []) : $this->input($name);
         }
-        [$clean, $members, $errors] = RecordModule::validate($tab, $input);
+        [$clean, $members, $errors] = RecordModule::validate($tab, $input, $id);
 
         if ($errors) {
             flash_errors($errors);

@@ -186,8 +186,15 @@ class RecordModule
     // ------------------------------------------------------------------ saving
 
     /** Validator rules + extra checks. Returns [clean data, members => [field => ids], errors]. */
-    public static function validate(array $tab, array $input): array
+    public static function validate(array $tab, array $input, ?int $id = null): array
     {
+        // Collapse repeated spaces in text answers ("Juan   Dela  Cruz" -> "Juan Dela Cruz")
+        foreach ($tab['fields'] as $name => $f) {
+            if ($f['type'] === 'text' && is_string($input[$name] ?? null)) {
+                $input[$name] = trim((string) preg_replace('/\s+/u', ' ', $input[$name]));
+            }
+        }
+
         $rules = $labels = [];
         foreach ($tab['fields'] as $name => $f) {
             if ($f['type'] === 'members') {
@@ -242,11 +249,16 @@ class RecordModule
                 if (isset($f['max_value']) && (float) $val > $f['max_value']) {
                     $errors[$name][] = $f['label'] . ' must not be more than ' . $f['max_value'] . '.';
                 }
+                if (!empty($f['positive']) && (float) $val <= 0 && !isset($errors[$name])) {
+                    $errors[$name][] = $f['label'] . ' must be greater than 0.';
+                }
             }
             if ($f['type'] === 'month' && !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', (string) $val)) {
                 $errors[$name][] = $f['label'] . ' must be a month (YYYY-MM).';
             }
         }
+
+        self::checkRules($tab, $clean, $errors, $id);
 
         // Many-to-many members: only existing, active profiles
         $members = [];
@@ -267,6 +279,52 @@ class RecordModule
         }
 
         return [$clean, $members, $errors];
+    }
+
+    /**
+     * Cross-field rules from a tab's 'rules' entry in config/modules.php:
+     *   pair         [[a, b], ...]            fill both or neither (e.g. latitude + longitude)
+     *   required_if  [field => [other, [values]]]  field is required when other is one of values
+     *   blank_unless [field => [other, [values]]]  field must be empty unless other is one of values
+     *   unique       [field, ...]             no other active record may use the same value
+     */
+    private static function checkRules(array $tab, array $clean, array &$errors, ?int $id): void
+    {
+        $r = $tab['rules'] ?? [];
+        $filled = fn (string $k) => isset($clean[$k]) && $clean[$k] !== '';
+        // "Farmer (if individual)" -> "Farmer"; "Registration no." -> "Registration no"
+        $f = array_map(fn ($def) => ['label' => rtrim((string) preg_replace('/\s*\(.*\)$/', '', $def['label']), '.')] + $def, $tab['fields']);
+        $choice = fn (string $other) => $f[$other]['options'][(string) ($clean[$other] ?? '')] ?? (string) ($clean[$other] ?? '');
+
+        foreach ($r['pair'] ?? [] as [$a, $b]) {
+            if ($filled($a) !== $filled($b) && !isset($errors[$a]) && !isset($errors[$b])) {
+                $missing = $filled($a) ? $b : $a;
+                $errors[$missing][] = 'Enter both ' . strtolower($f[$a]['label']) . ' and ' . strtolower($f[$b]['label']) . ', or leave both blank.';
+            }
+        }
+        foreach ($r['required_if'] ?? [] as $field => [$other, $values]) {
+            if (in_array((string) ($clean[$other] ?? ''), $values, true) && !$filled($field) && !isset($errors[$field])) {
+                $errors[$field][] = $f[$field]['label'] . ' is required when ' . $f[$other]['label'] . ' is ' . $choice($other) . '.';
+            }
+        }
+        foreach ($r['blank_unless'] ?? [] as $field => [$other, $values]) {
+            if ($filled($field) && !in_array((string) ($clean[$other] ?? ''), $values, true) && !isset($errors[$field])) {
+                $errors[$field][] = 'Leave ' . strtolower($f[$field]['label']) . ' blank when ' . $f[$other]['label'] . ' is ' . $choice($other) . '.';
+            }
+        }
+        foreach ($r['unique'] ?? [] as $field) {
+            if ($filled($field) && !isset($errors[$field])) {
+                $sql = 'SELECT COUNT(*) FROM ' . self::ident($tab['table']) . ' WHERE ' . self::ident($field) . ' = ? AND deleted_at IS NULL';
+                $params = [$clean[$field]];
+                if ($id !== null) {
+                    $sql .= ' AND id <> ?';
+                    $params[] = $id;
+                }
+                if ((int) Model::query($sql, $params)->fetchColumn() > 0) {
+                    $errors[$field][] = 'Another record already uses this ' . strtolower($f[$field]['label']) . '.';
+                }
+            }
+        }
     }
 
     public static function insert(array $tab, array $clean, array $members): int

@@ -42,7 +42,7 @@ return [
                     'farm_name'    => ['label' => 'Farm / parcel name', 'type' => 'text', 'required' => true, 'max' => 120, 'col' => 'col-md-6'],
                     'profile_id'   => ['label' => 'Owner / operator', 'type' => 'profile', 'required' => true, 'col' => 'col-md-6'],
                     'barangay_id'  => ['label' => 'Barangay', 'type' => 'barangay', 'required' => true, 'col' => 'col-md-4'],
-                    'area_ha'      => ['label' => 'Area (ha)', 'type' => 'number', 'required' => true, 'step' => '0.0001', 'col' => 'col-md-4'],
+                    'area_ha'      => ['label' => 'Area (ha)', 'type' => 'number', 'required' => true, 'positive' => true, 'step' => '0.0001', 'col' => 'col-md-4'],
                     'commodity'    => ['label' => 'Main commodity', 'type' => 'select', 'required' => true, 'options' => $commodities, 'col' => 'col-md-4'],
                     'water_source' => ['label' => 'Water source', 'type' => 'select', 'options' => ['irrigated' => 'Irrigated', 'rainfed' => 'Rainfed', 'upland' => 'Upland'], 'col' => 'col-md-4'],
                     'tenure'       => ['label' => 'Tenure', 'type' => 'select', 'options' => ['owner' => 'Owner', 'tenant' => 'Tenant', 'lessee' => 'Lessee', 'others' => 'Others'], 'col' => 'col-md-4'],
@@ -51,6 +51,7 @@ return [
                     'remarks'      => ['label' => 'Remarks', 'type' => 'textarea', 'col' => 'col-12'],
                 ],
                 'sections' => ['farm_name' => 'Farm details', 'latitude' => 'Map location', 'remarks' => 'Notes'],
+                'rules'   => ['pair' => [['latitude', 'longitude']]],
                 'list'    => ['farm_name', 'profile_id', 'barangay_id', 'area_ha', 'commodity', 'water_source', 'computed:mapped'],
                 'search'  => ['farm_name', 'profile_id'],
                 'filters' => ['barangay_id', 'commodity', 'water_source'],
@@ -66,7 +67,7 @@ return [
                     'profile_id'      => ['label' => 'Owner / operator', 'type' => 'profile', 'required' => true, 'col' => 'col-md-6'],
                     'barangay_id'     => ['label' => 'Barangay', 'type' => 'barangay', 'required' => true, 'col' => 'col-md-6'],
                     'size_capacity'   => ['label' => 'Size / capacity', 'type' => 'text', 'max' => 60, 'col' => 'col-md-4', 'help' => 'e.g. 3 GT, 28 ft, 500 m net.'],
-                    'area_ha'         => ['label' => 'Area (ha)', 'type' => 'number', 'step' => '0.0001', 'col' => 'col-md-4', 'help' => 'Fishponds and aquaculture only.'],
+                    'area_ha'         => ['label' => 'Area (ha)', 'type' => 'number', 'positive' => true, 'step' => '0.0001', 'col' => 'col-md-4', 'help' => 'Required for fishponds and aquaculture units.'],
                     'species'         => ['label' => 'Species', 'type' => 'select', 'options' => $fishSpecies, 'col' => 'col-md-4'],
                     'status'          => ['label' => 'Status', 'type' => 'select', 'required' => true, 'options' => ['operational' => 'Operational', 'idle' => 'Idle', 'damaged' => 'Damaged', 'retired' => 'Retired'], 'col' => 'col-md-4', 'default' => 'operational'],
                     'latitude'        => ['label' => 'Latitude', 'type' => 'number', 'step' => '0.0000001', 'col' => 'col-md-4', 'min' => -90, 'max_value' => 90],
@@ -74,6 +75,11 @@ return [
                     'remarks'         => ['label' => 'Remarks', 'type' => 'textarea', 'col' => 'col-12'],
                 ],
                 'sections' => ['asset_type' => 'Asset details', 'profile_id' => 'Owner and location', 'size_capacity' => 'Specifications', 'latitude' => 'Map location', 'remarks' => 'Notes'],
+                'rules'   => [
+                    'pair'        => [['latitude', 'longitude']],
+                    'required_if' => ['area_ha' => ['asset_type', ['fishpond', 'aquaculture']]],
+                    'unique'      => ['registration_no'],
+                ],
                 'list'    => ['name', 'asset_type', 'profile_id', 'barangay_id', 'size_capacity', 'status', 'computed:mapped'],
                 'search'  => ['name', 'registration_no', 'profile_id'],
                 'filters' => ['barangay_id', 'asset_type', 'status'],
@@ -89,7 +95,7 @@ return [
                     'species'     => ['label' => 'Species', 'type' => 'select', 'required' => true, 'options' => [
                         'carabao' => 'Carabao', 'cattle' => 'Cattle', 'goat' => 'Goat', 'sheep' => 'Sheep', 'swine' => 'Swine', 'horse' => 'Horse',
                         'chicken' => 'Chicken', 'duck' => 'Duck', 'quail' => 'Quail', 'turkey' => 'Turkey', 'others' => 'Others'], 'col' => 'col-md-4'],
-                    'head_count'  => ['label' => 'Number of heads', 'type' => 'integer', 'required' => true, 'col' => 'col-md-4'],
+                    'head_count'  => ['label' => 'Number of heads', 'type' => 'integer', 'required' => true, 'positive' => true, 'col' => 'col-md-4'],
                     'purpose'     => ['label' => 'Purpose', 'type' => 'select', 'options' => [
                         'breeding' => 'Breeding', 'fattening' => 'Fattening', 'draft' => 'Draft', 'dairy' => 'Dairy',
                         'layer' => 'Layer (eggs)', 'broiler' => 'Broiler (meat)', 'others' => 'Others'], 'col' => 'col-md-4'],
@@ -110,7 +116,7 @@ return [
                         'combine_harvester' => 'Combine harvester', 'rice_transplanter' => 'Rice transplanter', 'water_pump' => 'Water pump',
                         'dryer' => 'Mechanical dryer', 'rice_mill' => 'Rice mill', 'sprayer' => 'Power sprayer', 'others' => 'Others'], 'col' => 'col-md-4'],
                     'description'     => ['label' => 'Brand / model / serial', 'type' => 'text', 'max' => 150, 'col' => 'col-md-5'],
-                    'quantity'        => ['label' => 'Quantity', 'type' => 'integer', 'required' => true, 'col' => 'col-md-3', 'default' => '1'],
+                    'quantity'        => ['label' => 'Quantity', 'type' => 'integer', 'required' => true, 'positive' => true, 'col' => 'col-md-3', 'default' => '1'],
                     'item_condition'  => ['label' => 'Condition', 'type' => 'select', 'required' => true, 'options' => [
                         'good' => 'Good', 'fair' => 'Fair', 'needs_repair' => 'Needs repair', 'unserviceable' => 'Unserviceable'], 'col' => 'col-md-4', 'default' => 'good'],
                     'ownership'       => ['label' => 'Held by', 'type' => 'select', 'required' => true, 'options' => [
@@ -123,6 +129,11 @@ return [
                     'remarks'         => ['label' => 'Remarks', 'type' => 'textarea', 'col' => 'col-12'],
                 ],
                 'sections' => ['equipment_type' => 'Equipment', 'ownership' => 'Held by', 'date_acquired' => 'Acquisition', 'remarks' => 'Notes'],
+                // A farmer OR an organization holds it, never both (LGU-held: neither)
+                'rules'   => [
+                    'required_if'  => ['profile_id' => ['ownership', ['individual']], 'organization_id' => ['ownership', ['organization']]],
+                    'blank_unless' => ['profile_id' => ['ownership', ['individual']], 'organization_id' => ['ownership', ['organization']]],
+                ],
                 'list'    => ['equipment_type', 'description', 'quantity', 'item_condition', 'computed:holder', 'barangay_id'],
                 'search'  => ['description', 'source', 'profile_id'],
                 'filters' => ['barangay_id', 'equipment_type', 'item_condition'],
@@ -172,7 +183,7 @@ return [
                     'farm_id'           => ['label' => 'Farm / parcel', 'type' => 'farm', 'col' => 'col-md-6'],
                     'barangay_id'       => ['label' => 'Barangay', 'type' => 'barangay', 'required' => true, 'col' => 'col-md-4'],
                     'commodity'         => ['label' => 'Commodity', 'type' => 'select', 'required' => true, 'options' => $commodities, 'col' => 'col-md-4'],
-                    'season'            => ['label' => 'Cropping season', 'type' => 'select', 'required' => true, 'options' => ['wet' => 'Wet season', 'dry' => 'Dry season'], 'col' => 'col-md-4'],
+                    'season'            => ['label' => 'Cropping season', 'type' => 'select', 'required' => true, 'options' => ['wet' => Setting::get('wet_season_label'), 'dry' => Setting::get('dry_season_label')], 'col' => 'col-md-4'],
                     'period_month'      => ['label' => 'Reporting month', 'type' => 'month', 'required' => true, 'col' => 'col-md-4'],
                     'period_half'       => ['label' => 'Reporting period', 'type' => 'select', 'required' => true, 'options' => ['1' => '1st half (1-15)', '2' => '2nd half (16-end)'], 'col' => 'col-md-4'],
                     'date_monitored'    => ['label' => 'Date monitored', 'type' => 'date', 'required' => true, 'not_future' => true, 'col' => 'col-md-4'],

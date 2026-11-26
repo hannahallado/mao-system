@@ -99,6 +99,10 @@ $presetName = $preset === 'farms' ? 'Farm' : ($preset === 'fishery' ? 'Fishery' 
                     <div><dt>Category</dt><dd id="map-detail-category"></dd></div>
                     <div><dt>Barangay</dt><dd id="map-detail-barangay"></dd></div>
                     <div><dt>Commodity</dt><dd id="map-detail-commodity"></dd></div>
+                    <div id="map-detail-owner-row" hidden><dt>Owner</dt><dd id="map-detail-owner"></dd></div>
+                    <div id="map-detail-description-row" hidden><dt>Description</dt><dd id="map-detail-description"></dd></div>
+                    <div id="map-detail-area-row" hidden><dt>Area / Capacity</dt><dd id="map-detail-area"></dd></div>
+                    <div id="map-detail-status-row" hidden><dt>Status</dt><dd id="map-detail-status"></dd></div>
                 </dl>
                 <div class="map-detail-links">
                     <a class="btn btn-primary btn-sm" id="map-record-link" href="#">Open D2 record</a>
