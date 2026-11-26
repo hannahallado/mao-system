@@ -2,6 +2,9 @@
 $u        = Auth::user();
 $name     = $u['full_name'] ?? '';
 $roleName = Auth::isAgriculturist() ? 'Municipal Agriculturist' : 'Agricultural Technologist';
+$notifications = NotificationService::forCurrentUser();
+$unread        = NotificationService::unreadCount();
+$readsReady    = NotificationService::readsReady();
 ?>
 <header class="app-header">
     <div class="app-header-left">
@@ -10,18 +13,62 @@ $roleName = Auth::isAgriculturist() ? 'Municipal Agriculturist' : 'Agricultural 
             <i class="bi bi-list" aria-hidden="true"></i>
         </button>
         <a href="<?= url('/home') ?>" class="app-brand">
-            <img src="<?= asset('img/logo.png') ?>" alt="" class="app-brand-logo" width="36" height="36">
             <span class="app-brand-text">
                 <span class="app-brand-name"><?= e(config('app_name')) ?></span>
-                <span class="app-brand-sub">Information Management System</span>
             </span>
         </a>
     </div>
 
-    <!-- Profile: display only (log out is in the sidebar) -->
-    <div class="profile" title="<?= e($name) ?>">
-        <span class="profile-role"><?= e($roleName) ?></span>
-        <span class="profile-icon" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+    <div class="app-header-right">
+        <!-- Notifications: registrations, assistance, programs/activities, reports and reminders -->
+        <div class="dropdown">
+            <button type="button" class="notif-btn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
+                    aria-label="Notifications<?= $unread ? ' (' . $unread . ' unread)' : '' ?>">
+                <i class="bi bi-bell" aria-hidden="true"></i>
+                <?php if ($unread): ?><span class="notif-dot" aria-hidden="true"></span><?php endif; ?>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end notif-menu">
+                <div class="notif-head">
+                    <span class="notif-head-title">Notifications</span>
+                    <?php if ($unread): ?><span class="notif-unread"><?= $unread ?> Unread</span><?php endif; ?>
+                    <?php if ($unread && $readsReady): ?>
+                        <form method="post" action="<?= url('/notifications/read-all') ?>" class="ms-auto">
+                            <?= Csrf::field() ?>
+                            <input type="hidden" name="back" value="<?= e(current_path() . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '')) ?>">
+                            <button type="submit" class="notif-readall">Mark all as read</button>
+                        </form>
+                    <?php endif; ?>
+                </div>
+                <?php if (!$notifications): ?>
+                    <div class="notif-empty"><i class="bi bi-check2-circle" aria-hidden="true"></i> You're all caught up.</div>
+                <?php else: ?>
+                    <div class="notif-list">
+                        <?php foreach ($notifications as $n): ?>
+                            <a class="notif-item<?= $n['unread'] ? ' is-unread' : '' ?>" href="<?= e(url('/notifications/open?key=' . rawurlencode($n['key']))) ?>">
+                                <span class="notif-icon cat-<?= e($n['category']) ?>"><i class="bi bi-<?= e($n['icon']) ?>" aria-hidden="true"></i></span>
+                                <span class="notif-body">
+                                    <span class="notif-title"><?= e($n['title']) ?></span>
+                                    <span class="notif-text"><?= e($n['text']) ?></span>
+                                    <span class="notif-meta">
+                                        <span class="notif-date"><?= e(time_ago((string) $n['when'])) ?></span>
+                                        <?php if ($n['tag']): ?><span class="notif-tag is-<?= e($n['tagTone']) ?>"><?= e($n['tag']) ?></span><?php endif; ?>
+                                    </span>
+                                </span>
+                                <?php if ($n['unread']): ?><span class="notif-unread-dot" aria-label="Unread"></span><?php endif; ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <span class="header-divider" aria-hidden="true"></span>
+
+        <!-- Profile: display only (log out is in the sidebar) -->
+        <div class="profile" title="<?= e($name) ?>">
+            <span class="profile-icon" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+            <span class="profile-role"><?= e($roleName) ?></span>
+        </div>
     </div>
 </header>
 

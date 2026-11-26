@@ -1,5 +1,5 @@
 <?php
-/** Process 6.0 - Reports Center + one reusable report template. */
+/** Process 6.0 - Reports Center + one reusable report template (print + Excel). */
 class ReportController extends Controller
 {
     private function catalogue(): array
@@ -10,50 +10,45 @@ class ReportController extends Controller
     public function index(): void
     {
         $this->view('reports/index', [
-            'title'       => 'Reports Center',
+            'title'       => 'Reports',
             'groups'      => $this->catalogue(),
             'breadcrumbs' => [['Home', '/home'], ['Reports', null]],
-            'menu_active' => '/reports/group/farmer-resource',
         ]);
     }
 
+    /** Old group pages: the Reports Center lists every group already. */
     public function group(string $group): void
     {
-        $cat = $this->catalogue();
-        if (!isset($cat[$group])) {
-            abort(404);
-        }
-        $this->view('reports/group', [
-            'title'       => $cat[$group]['title'],
-            'group'       => $cat[$group],
-            'breadcrumbs' => [['Home', '/home'], ['Reports', '/reports'], [$cat[$group]['title'], null]],
-            'menu_active' => '/reports/group/' . $group,
-        ]);
+        $this->redirect('/reports');
     }
 
-    /** One report. Replace mockup() with the reusable report-view template. */
     public function show(string $slug): void
     {
-        foreach ($this->catalogue() as $gslug => $group) {
+        $report = null;
+        foreach ($this->catalogue() as $group) {
             if (isset($group['reports'][$slug])) {
-                [$title, $functional] = $group['reports'][$slug];
-                $this->mockup([
-                    'title'       => $title,
-                    'group'       => $group['title'],
-                    'process'     => '6.0 Generate Reports',
-                    'status'      => $functional ? 'functional' : 'mockup',
-                    'menu_active' => '/reports/group/' . $gslug,
-                    'todo'        => [
-                        'Report title, reporting period, generated date and applicable filters',
-                        'Readable table with column headings, totals and summaries',
-                        'Print and Export to Excel (.xlsx) buttons',
-                        'Print layout with headings and page breaks',
-                        'Friendly message when no records match the filters',
-                    ],
-                ]);
-                return;
+                $report = ['title' => $group['reports'][$slug][0], 'description' => $group['reports'][$slug][1], 'group' => $group['title']];
             }
         }
-        abort(404);
+        if (!$report || !isset(ReportService::DEFINITIONS[$slug])) {
+            abort(404);
+        }
+
+        $missing = ReportService::missingTables($slug);
+        $filters = ReportService::cleanFilters($slug, $_GET);
+        $data    = $missing ? ['rows' => [], 'columns' => []] : ReportService::run($slug, $filters);
+
+        $this->view('reports/show', [
+            'title'       => $report['title'],
+            'report'      => $report,
+            'slug'        => $slug,
+            'filters'     => $filters,
+            'missing'     => $missing,
+            'rows'        => $data['rows'],
+            'columns'     => $data['columns'],
+            'settings'    => Setting::all(),
+            'breadcrumbs' => [['Home', '/home'], ['Reports', '/reports'], [$report['title'], null]],
+            'scripts'     => ['js/reports.js'],
+        ]);
     }
 }

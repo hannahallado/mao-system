@@ -1,6 +1,8 @@
 <?php
 $menuDef    = menu();
-$activePath = $menu_active ?? active_menu_path($menuDef);
+// $menu_active (set by some controllers) is treated as the page's path, so it
+// resolves to whichever sidebar link owns it
+$activePath = active_menu_path($menuDef, $menu_active ?? null);
 $shown      = [];
 // Labels are wrapped in .nav-text so the collapsed (icon-only) sidebar can hide
 // them; title="" gives a hover tooltip in that mode.

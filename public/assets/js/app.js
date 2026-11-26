@@ -30,7 +30,7 @@ function confirm(message, onConfirm, onCancel = null) {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Confirm Action</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="x-close-btn" data-bs-dismiss="modal" aria-label="Close"><span class="bar"></span><span class="bar"></span></button>
                 </div>
                 <div class="modal-body">${escapeHtml(message)}</div>
                 <div class="modal-footer">
@@ -71,12 +71,12 @@ function confirm(message, onConfirm, onCancel = null) {
 // Desktop: switch between the full sidebar and the icon-only rail, remembered
 // in localStorage. Clicking a group icon in the rail expands the sidebar and
 // opens that group.
-// Small screens (< 992px): slide the sidebar in over the content.
+// Below 1200px: slide the sidebar in over the content (same breakpoint as style.css).
 (function () {
   const toggle = document.getElementById("sidebarToggle");
   const backdrop = document.getElementById("sidebarBackdrop");
   if (!toggle) return;
-  const mobile = window.matchMedia("(max-width: 991px)");
+  const mobile = window.matchMedia("(max-width: 1199px)");
   const body = document.body;
 
   function syncAria() {
@@ -96,6 +96,12 @@ function confirm(message, onConfirm, onCancel = null) {
       } catch (e) {}
     }
     syncAria();
+  });
+
+  // The content area changes width with the sidebar; tell width-dependent
+  // widgets (charts, map) once the slide has finished
+  document.getElementById("appSidebar")?.addEventListener("transitionend", (e) => {
+    if (e.propertyName === "width") window.dispatchEvent(new Event("resize"));
   });
 
   // Rail: a group's links are hidden, so expand the sidebar and open the group

@@ -4,7 +4,7 @@ $today = date('Y-m-d');
 $beneficiarySelected = (string) old('program_beneficiary_id', $beneficiaryId);
 $programSelected = (string) old('program_id', $programId);
 ?>
-<?= Ui::pageHead('Record Distribution', 'Log assistance given to a beneficiary. Similar earlier assistance triggers a warning.',
+<?= Ui::pageHead('Record Distribution', null,
     '<a class="btn btn-outline-secondary btn-sm" href="' . e(url('/assistance')) . '">Back to list</a>') ?>
 
 <form method="post" action="<?= url('/assistance') ?>" data-duplicate-check="<?= url('/assistance/check-duplicate') ?>" novalidate>

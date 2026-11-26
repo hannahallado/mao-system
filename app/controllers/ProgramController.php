@@ -22,7 +22,7 @@ class ProgramController extends Controller
         ];
         $this->view('programs/index', [
             'title'       => 'Programs and Projects',
-            'breadcrumbs' => [['Home', '/home'], ['Programs and Assistance', null], ['Programs and Projects', null]],
+            'breadcrumbs' => [['Home', '/home'], ['Programs', null]],
             'filters'     => $filters,
             'result'      => Program::search($filters, (int) $this->input('page', 1)),
             'years'       => Program::years(),
@@ -122,7 +122,7 @@ class ProgramController extends Controller
         $tab = in_array($this->input('tab'), ['overview', 'beneficiaries', 'distributions'], true) ? $this->input('tab') : 'overview';
         $this->view('programs/show', [
             'title'         => $program['name'],
-            'breadcrumbs'   => [['Home', '/home'], ['Programs and Assistance', null], ['Programs and Projects', '/programs'], [$program['name'], null]],
+            'breadcrumbs'   => [['Home', '/home'], ['Programs', '/programs'], [$program['name'], null]],
             'program'       => $program,
             'tab'           => $tab,
             'beneficiaries' => ProgramBeneficiary::forProgram((int) $program['id']),
@@ -196,7 +196,7 @@ class ProgramController extends Controller
     private function renderForm(string $mode, array $program): void
     {
         $title = $mode === 'create' ? 'Create Program' : 'Edit Program';
-        $crumbs = [['Home', '/home'], ['Programs and Assistance', null], ['Programs and Projects', '/programs']];
+        $crumbs = [['Home', '/home'], ['Programs', '/programs']];
         if ($mode === 'edit') {
             $crumbs[] = [$program['name'], '/programs/' . $program['id']];
         }

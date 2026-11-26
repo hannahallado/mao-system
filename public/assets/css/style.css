@@ -22,7 +22,7 @@
   --c-muted: #6f8078;
   --c-border: #e6e4de;
   --c-border-2: #d4d1c8;
-  --c-page: #f6f5f1;         /* content background */
+  --c-page: #f8fafb;         /* content background (cool near-white) */
   --c-surface: #ffffff;
   --c-row-hover: #f7f8f5;
   --c-head-bg: #f9f8f5;
@@ -238,13 +238,6 @@ code {
   color: var(--c-primary);
 }
 
-.app-brand-logo {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
 .app-brand-text {
   display: flex;
   flex-direction: column;
@@ -261,48 +254,279 @@ code {
   text-overflow: ellipsis;
 }
 
-.app-brand-sub {
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--c-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-@media (max-width: 575px) {
-  .app-brand-sub {
-    display: none;
-  }
-}
-
 .profile {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+
 /* Role label next to the profile icon (full name shows on hover) */
 .profile-role {
-  font-size: var(--fs-base);
-  font-weight: 500;
-  color: var(--c-forest);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--c-ink);
   white-space: nowrap;
 }
 
 .profile-icon {
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   display: inline-grid;
   place-items: center;
   border-radius: 50%;
-  /* Same dark green as the landing page (--primary there) */
-  background: var(--c-forest);
-  color: #fff;
-  font-size: 15px;
+  background: var(--c-mint);
+  color: var(--c-forest);
+  font-size: 17px;
   line-height: 1;
+}
+
+/* Right side of the top bar: bell | divider | profile */
+.app-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--c-border);
+}
+
+/* Notification bell */
+.notif-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  color: var(--c-forest);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.notif-btn:hover,
+.notif-btn[aria-expanded="true"] {
+  background: var(--c-page);
+  border-color: var(--c-border-2);
+}
+
+.notif-btn:focus {
+  outline: none;
+}
+
+.notif-btn:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.notif-dot {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d9534f;
+  box-shadow: 0 0 0 2px var(--c-surface);
+}
+
+.notif-menu {
+  width: 340px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.notif-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.notif-head-title {
+  font-weight: 600;
+  color: var(--c-forest);
+}
+
+.notif-unread {
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: var(--c-mint);
+  color: var(--c-primary);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.notif-readall {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--c-primary);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.notif-readall:hover {
+  text-decoration: underline;
+}
+
+.notif-list {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.notif-item {
+  position: relative;
+}
+
+.notif-item.is-unread {
+  background: #f4f9f6;
+}
+
+.notif-unread-dot {
+  position: absolute;
+  top: 16px;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-primary);
+}
+
+.notif-item .notif-body {
+  padding-right: 14px;
+}
+
+.notif-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.notif-tag {
+  padding: 0 7px;
+  border-radius: var(--r-pill);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 17px;
+}
+
+.notif-tag.is-warning { background: var(--c-warning-soft); color: #a64b00; }
+.notif-tag.is-info    { background: var(--c-mint); color: var(--c-primary); }
+.notif-tag.is-danger  { background: var(--c-danger-soft); color: #b42318; }
+.notif-tag.is-muted   { background: #eef0f2; color: var(--c-text-2); }
+
+/* Category colours for the item icon */
+.notif-icon.cat-registrations { background: var(--c-mint); color: var(--c-primary); }
+.notif-icon.cat-assistance    { background: var(--c-warning-soft); color: #b85c00; }
+.notif-icon.cat-programs      { background: var(--c-info-soft); color: #1d5fbf; }
+.notif-icon.cat-reminders     { background: #f1eef9; color: #5b3fa8; }
+
+.notif-empty {
+  padding: 22px 16px;
+  text-align: center;
+  color: var(--c-muted);
+  font-size: var(--fs-base);
+}
+
+.notif-empty .bi {
+  color: var(--c-primary);
+}
+
+.notif-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--c-border);
+  color: var(--c-ink);
+  text-decoration: none;
+}
+
+.notif-item:last-child {
+  border-bottom: 0;
+}
+
+.notif-item:hover {
+  background: var(--c-row-hover);
+  color: var(--c-ink);
+}
+
+.notif-icon {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  font-size: 14px;
+}
+
+.notif-icon.is-warning { background: var(--c-warning-soft); color: #b85c00; }
+.notif-icon.is-danger  { background: var(--c-danger-soft); color: #c62828; }
+.notif-icon.is-info    { background: var(--c-mint); color: var(--c-primary); }
+
+.notif-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.notif-title {
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+.notif-text {
+  font-size: var(--fs-sm);
+  color: var(--c-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.notif-date {
+  font-size: var(--fs-xs);
+  color: var(--c-muted);
+}
+
+/* Date chip (Dashboard header) */
+.date-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  font-size: var(--fs-md);
+  white-space: nowrap;
+}
+
+.date-chip .bi {
+  color: var(--c-forest);
+}
+
+@media (max-width: 575px) {
+  .header-divider {
+    display: none;
+  }
 }
 
 /* Narrow screens: icon only */
@@ -312,9 +536,12 @@ code {
   }
 }
 
+/* Content grows with the window (sidebar open, collapsed or hidden) and is
+   centered once it reaches a comfortable reading width on very wide screens */
 .app-content {
   width: 100%;
-  max-width: 1440px;
+  max-width: 1680px;
+  margin-inline: auto;
   padding: var(--sp-5) var(--sp-6) var(--sp-6);
   flex: 1;
 }
@@ -397,7 +624,7 @@ code {
 /* Desktop: the menu button switches between the full sidebar and an
    icon-only rail (remembered per browser). The rail keeps every section one
    click away instead of hiding navigation completely. */
-@media (min-width: 992px) {
+@media (min-width: 1200px) {
   body.sidebar-anim .sidebar {
     transition: width 0.25s ease;
   }
@@ -929,10 +1156,107 @@ textarea.form-control {
   margin-bottom: var(--sp-3);
 }
 
+/* ---------- List panel: filter toolbar + table + footer read as one card ---------- */
+.filter-bar:has(+ .table-wrap) {
+  margin-bottom: 0;
+  padding: 12px 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-bottom: 0;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-bar + .table-wrap {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.table-wrap:has(+ .list-footer) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: 0;
+}
+
+.list-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.table-wrap + .list-footer {
+  margin-top: 0;
+  padding: 10px 14px;
+  background: var(--c-head-bg);
+  border: 1px solid var(--c-border);
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.list-footer strong {
+  color: var(--c-ink);
+  font-weight: 600;
+}
+
+/* Search box with a magnifier inside */
+.filter-search {
+  position: relative;
+  flex: 1 1 260px;
+  max-width: 380px;
+}
+
+.filter-search > .bi {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--c-muted);
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.filter-bar .filter-search .form-control {
+  width: 100%;
+  padding-left: 32px;
+}
+
+.filter-clear {
+  color: var(--c-muted);
+  text-decoration: none;
+}
+
+.filter-clear:hover {
+  color: #b42318;
+}
+
 .filter-bar .form-control,
 .filter-bar .form-select {
   width: auto;
   min-width: 150px;
+}
+
+/* Search / Clear buttons line up with the inputs */
+.filter-bar .btn {
+  min-height: var(--control-h);
+  padding-inline: 14px;
+}
+
+/* Hint that a wide table scrolls sideways (visible thin scrollbar) */
+.table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-border-2) transparent;
+}
+
+.table-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb {
+  background: var(--c-border-2);
+  border-radius: 4px;
 }
 
 .filter-bar .form-select {
@@ -1113,24 +1437,493 @@ textarea.form-control {
   transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ---------- Register Profile modal (Registry list) ---------- */
+.register-modal .modal-content {
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.register-modal .modal-header {
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 14px 16px 14px 20px;
+  background: var(--c-head-bg);
+}
+
+.register-modal .modal-title {
+  font-size: 16px;
+}
+
+.register-modal-sub {
+  margin: 2px 0 0;
+  font-size: var(--fs-sm);
+  color: var(--c-muted);
+}
+
+.register-modal .modal-body {
+  padding: 18px 20px;
+}
+
+.register-modal .modal-footer {
+  padding: 12px 20px;
+  background: var(--c-head-bg);
+}
+
+.modal-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 160px;
+  color: var(--c-muted);
+}
+
+/* Icon-only row actions (View / Edit / Delete) */
+.row-actions {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.btn-icon-action {
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn-icon-action:hover {
+  border-color: var(--c-primary);
+  background: var(--c-mint);
+  color: var(--c-primary);
+}
+
+.btn-icon-action.is-danger:hover {
+  border-color: #e5a4a4;
+  background: var(--c-danger-soft);
+  color: #b42318;
+}
+
+.btn-icon-action:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 1px;
+}
+
+/* Name in the table opens the View modal; looks like a link */
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--bs-link-color);
+  text-align: left;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  color: var(--bs-link-hover-color);
+  text-decoration: underline;
+}
+
+/* ---------- Tabbed module pages (Resources, Monitoring, Programs, System) ---------- */
+.module-tabs {
+  margin-bottom: var(--sp-4);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.module-tabs .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.module-tabs .nav-link i {
+  font-size: 14px;
+}
+
+.tab-count {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: #efede7;
+  color: var(--c-text-2);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+}
+
+.nav-link.active .tab-count {
+  background: var(--c-mint);
+  color: var(--c-primary);
+}
+
+/* Summary cards (Monitoring overview, Dashboard) */
+.stat-card {
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  color: var(--c-ink);
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+a.stat-card:hover {
+  border-color: var(--c-primary);
+  box-shadow: var(--shadow-hover);
+  color: var(--c-ink);
+}
+
+.stat-card-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--r-md);
+  background: var(--c-mint);
+  color: var(--c-primary);
+  font-size: 17px;
+}
+
+.stat-card-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stat-card-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.stat-card-value {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--c-forest);
+}
+
+.stat-card-value small {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--c-muted);
+}
+
+.stat-card-note {
+  font-size: var(--fs-sm);
+  color: var(--c-muted);
+}
+
+/* Production form: live yield */
+.yield-preview {
+  margin-top: var(--sp-3);
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: var(--c-mint);
+  color: var(--c-primary);
+  font-size: var(--fs-base);
+}
+
+/* Group headings inside record forms and the View modal */
+/* Bootstrap's .row g-3 spaces items with margin-top; keep that gutter and add
+   extra room before each new group so it reads as a separate section */
+.row > .form-subhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: calc(var(--bs-gutter-y) + 14px);
+  margin-bottom: -4px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-primary);
+}
+
+.row > .form-subhead::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--c-border);
+}
+
+.row > .form-subhead:first-child {
+  margin-top: var(--bs-gutter-y);
+}
+
+.detail-subhead {
+  margin-top: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--c-border);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-primary);
+}
+
+.detail-subhead:first-child {
+  margin-top: 0;
+}
+
+/* Dashboard */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--sp-3);
+}
+
+.chart-box {
+  position: relative;
+  height: 260px;
+}
+
+.dash-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dash-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.dash-list li:last-child {
+  border-bottom: 0;
+}
+
+/* Audit log details column */
+.audit-field {
+  font-weight: 600;
+  color: var(--c-text-2);
+  text-transform: capitalize;
+}
+
+.access-table td:not(:first-child) {
+  width: 200px;
+}
+
+/* ---------- Reports ---------- */
+.report-list {
+  display: flex;
+  flex-direction: column;
+}
+
+a.report-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--c-border);
+  color: var(--c-ink);
+  text-decoration: none;
+}
+
+a.report-row:last-child {
+  border-bottom: 0;
+}
+
+a.report-row:hover {
+  background: var(--c-row-hover);
+}
+
+a.report-row:hover .report-row-title {
+  color: var(--c-primary);
+}
+
+.report-row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.report-row-title {
+  font-weight: 600;
+  color: var(--c-forest);
+}
+
+.report-row-desc {
+  font-size: var(--fs-sm);
+  color: var(--c-muted);
+}
+
+.report-row > .bi {
+  color: var(--c-muted);
+}
+
+.report-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: var(--sp-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+}
+
+.report-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  flex: 0 1 200px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--c-text-2);
+}
+
+.report-filter-wide {
+  flex-basis: 260px;
+}
+
+.report-filter-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding-bottom: 2px;
+}
+
+.report-doc {
+  padding: 24px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+}
+
+.report-doc-head {
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--c-forest);
+  text-align: center;
+}
+
+.report-doc-office {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-forest);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.report-doc-place {
+  font-size: var(--fs-sm);
+  color: var(--c-muted);
+}
+
+.report-doc-title {
+  margin: 10px 0 12px;
+  font-size: 18px;
+  color: var(--c-ink);
+}
+
+.report-doc-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 6px 20px;
+  margin: 0;
+  text-align: left;
+  font-size: var(--fs-sm);
+}
+
+.report-doc-meta dt {
+  font-weight: 600;
+  color: var(--c-muted);
+}
+
+.report-doc-meta dd {
+  margin: 0;
+  color: var(--c-ink);
+}
+
+.report-table {
+  margin-bottom: 0;
+  font-size: var(--fs-sm);
+}
+
+.report-table th {
+  white-space: nowrap;
+}
+
+.report-table tfoot th {
+  border-top: 2px solid var(--c-forest);
+  background: var(--c-head-bg);
+}
+
+.report-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--c-muted);
+}
+
+.report-empty .bi {
+  font-size: 24px;
+}
+
+.report-doc-sign {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  margin-top: 36px;
+  font-size: var(--fs-sm);
+}
+
+.report-doc-sign > div {
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+}
+
+.report-sign-label {
+  color: var(--c-muted);
+  margin-bottom: 28px;
+}
+
+.report-sign-line {
+  min-height: 1.4em;
+  border-bottom: 1px solid var(--c-ink);
+  font-weight: 600;
+  text-align: center;
+}
+
+.report-sign-title {
+  text-align: center;
+  color: var(--c-muted);
+}
+
 /* ---------- Logout modal ---------- */
 .logout-modal .modal-dialog {
   max-width: 420px;
 }
 
-/* Slide up when opening, back down when closing */
-.logout-modal.fade {
-  transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
-.logout-modal.fade .modal-dialog {
-  transform: translateY(40px);
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.logout-modal.show .modal-dialog {
-  transform: none;
-}
 
 .logout-modal .modal-content {
   border-radius: var(--r-lg);
@@ -1223,6 +2016,23 @@ textarea.form-control {
 .btn-pill-primary:hover {
   background: var(--c-forest);
   border-color: var(--c-forest);
+}
+
+.btn-pill-danger {
+  background: #c62828;
+  border: 1.5px solid #c62828;
+  color: #fff;
+}
+
+.btn-pill-danger:hover {
+  background: #a51f1f;
+  border-color: #a51f1f;
+}
+
+/* Delete confirmation reuses the logout modal with a red icon tile */
+.logout-modal-icon.is-danger {
+  background: var(--c-danger-soft);
+  color: #c62828;
 }
 
 .btn-pill:focus-visible {
@@ -1340,8 +2150,20 @@ textarea.form-control {
 
 .empty-state {
   text-align: center;
-  padding: 36px var(--sp-4);
+  padding: 40px var(--sp-4);
   color: var(--c-muted);
+}
+
+.empty-icon {
+  width: 48px;
+  height: 48px;
+  display: inline-grid;
+  place-items: center;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  background: var(--c-mint);
+  color: var(--c-primary);
+  font-size: 20px;
 }
 
 .empty-state .empty-title {
@@ -1764,8 +2586,10 @@ textarea.form-control {
 }
 
 /* ---------- 13. RESPONSIVE ---------- */
-@media (max-width: 991px) {
-  /* Small screens: the sidebar slides in over the content from the menu button */
+/* Below 1200px (tablets, small laptops): the sidebar slides in over the
+   content from the menu button, so tables and the map get the full width.
+   Keep in sync with the media query in app.js. */
+@media (max-width: 1199px) {
   .sidebar,
   body.sidebar-collapsed .sidebar {
     position: fixed;
@@ -1799,6 +2623,9 @@ textarea.form-control {
     padding-right: var(--sp-4);
   }
 
+}
+
+@media (max-width: 991px) {
   .app-content {
     padding-left: var(--sp-4);
     padding-right: var(--sp-4);
@@ -1812,6 +2639,273 @@ textarea.form-control {
   .map-canvas-wrap {
     height: min(65vh, 620px);
     min-height: 420px;
+  }
+}
+
+/* ==========================================================================
+   GOVERNMENT THEME (based on the landing page: deep green, orange accent,
+   sans-serif titles). Placed last so it refines the rules above.
+   ========================================================================== */
+
+:root {
+  --gov-stripe: linear-gradient(90deg, var(--c-forest) 0%, var(--c-primary) 55%, var(--c-orange) 100%);
+  /* Colour tones for cards / icons (soft background, strong colour) */
+  --tone-green-bg: #e3efe8;  --tone-green: #034e46;
+  --tone-teal-bg: #ddf1ee;   --tone-teal: #0f766e;
+  --tone-blue-bg: #e3edfb;   --tone-blue: #1d5fbf;
+  --tone-amber-bg: #fbf0d9;  --tone-amber: #a15c00;
+  --tone-red-bg: #fbe6e4;    --tone-red: #b42318;
+  --tone-purple-bg: #eee9f8; --tone-purple: #5b3fa8;
+  --tone-orange-bg: #fde9df; --tone-orange: #c2410c;
+}
+
+/* ---- Top bar: official stripe + brand ---- */
+.app {
+  --topbar-h: 64px;
+}
+
+/* Subtle gradient line along the top edge */
+.app-header::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--gov-stripe);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.app-brand-text {
+  line-height: 1.15;
+}
+
+.app-brand-name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--c-forest);
+}
+
+/* ---- Page title ---- */
+.page-head h1 {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--c-forest);
+}
+
+.page-head {
+  margin-bottom: var(--sp-5);
+}
+
+/* ---- Tabs: orange underline on the active tab ---- */
+.nav-tabs .nav-link.active {
+  color: var(--c-forest);
+  border-bottom-color: var(--c-orange);
+}
+
+.nav-tabs .nav-link:hover:not(.active) {
+  color: var(--c-forest);
+  border-bottom-color: var(--c-border-2);
+}
+
+/* ---- Tables: green-tinted headings ---- */
+.table > thead > tr > th {
+  background: #eef4f1;
+  color: var(--c-forest);
+  border-bottom: 1px solid #d6e4dd;
+}
+
+.table > tbody > tr:hover > td {
+  background: #f6faf8;
+}
+
+/* ---- Cards: titled header with icon ---- */
+.card-header {
+  background: var(--c-head-bg);
+  color: var(--c-forest);
+}
+
+.card-title-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title-icon > .bi {
+  color: var(--c-primary);
+}
+
+.card-title-icon.is-red > .bi {
+  color: var(--tone-red);
+}
+
+/* ---- Coloured tones: stat cards, report groups ---- */
+.stat-card .stat-card-icon {
+  background: var(--tone-bg, var(--tone-green-bg));
+  color: var(--tone, var(--tone-green));
+}
+
+/* Card label: same style as the "Password" label in the login modal */
+.stat-card .stat-card-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #0b3b2c;
+}
+
+.stat-card .stat-card-value {
+  margin-top: 2px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+a.stat-card:hover {
+  border-color: var(--tone, var(--c-primary));
+}
+
+.tone-green  { --tone: var(--tone-green);  --tone-bg: var(--tone-green-bg); }
+.tone-teal   { --tone: var(--tone-teal);   --tone-bg: var(--tone-teal-bg); }
+.tone-blue   { --tone: var(--tone-blue);   --tone-bg: var(--tone-blue-bg); }
+.tone-amber  { --tone: var(--tone-amber);  --tone-bg: var(--tone-amber-bg); }
+.tone-red    { --tone: var(--tone-red);    --tone-bg: var(--tone-red-bg); }
+.tone-purple { --tone: var(--tone-purple); --tone-bg: var(--tone-purple-bg); }
+.tone-orange { --tone: var(--tone-orange); --tone-bg: var(--tone-orange-bg); }
+
+.report-group {
+  border-top: 3px solid var(--tone, var(--c-primary));
+}
+
+.report-group .group-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--tone-bg);
+  color: var(--tone);
+  font-size: 14px;
+}
+
+.report-group a.report-row:hover .report-row-title {
+  color: var(--tone);
+}
+
+/* ---- Dashboard lists: initials avatars ---- */
+.dash-person {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.initials {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--tone-green-bg);
+  color: var(--tone-green);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* ---- Buttons ---- */
+.btn-primary {
+  --bs-btn-bg: var(--c-forest);
+  --bs-btn-border-color: var(--c-forest);
+  --bs-btn-hover-bg: var(--c-primary);
+  --bs-btn-hover-border-color: var(--c-primary);
+  --bs-btn-active-bg: var(--c-primary);
+  --bs-btn-active-border-color: var(--c-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(2, 47, 42, 0.18);
+}
+
+/* ---- Every modal: same look, fade + slide up (like the landing login modal) ---- */
+.modal.fade {
+  transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal.fade .modal-dialog {
+  transform: translateY(32px);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.modal.show .modal-dialog {
+  transform: none;
+}
+
+/* "Static" modals wiggle when clicking outside; keep that small */
+.modal.modal-static .modal-dialog {
+  transform: scale(1.01);
+}
+
+.modal-content {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+}
+
+.modal-content::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--gov-stripe);
+  z-index: 1;
+}
+
+.modal-header {
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 16px 14px 20px;
+  background: var(--c-head-bg);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--c-forest);
+}
+
+.modal-footer {
+  background: var(--c-head-bg);
+}
+
+/* ---- Footer ---- */
+.app-footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  width: 100%;
+  max-width: 1680px;
+  margin-inline: auto;
+  padding: 14px var(--sp-6) 18px;
+  border-top: 1px solid var(--c-border);
+  color: var(--c-muted);
+  font-size: var(--fs-sm);
+}
+
+@media (max-width: 991px) {
+  .app-footer {
+    padding-inline: var(--sp-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal.fade .modal-dialog {
+    transform: none;
+    transition: none;
   }
 }
 
@@ -1856,6 +2950,45 @@ textarea.form-control {
     background: #eee !important;
     color: #000;
   }
+  /* Report document fills the page; no animation, no app chrome */
+  .app-main {
+    background: #fff;
+  }
+  .app-content {
+    max-width: none;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  body.page-enter::before {
+    display: none;
+  }
+  .report-doc {
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+  .report-table {
+    font-size: 10px;
+  }
+  .report-table thead {
+    display: table-header-group;   /* repeat column headings on every page */
+  }
+  .report-table tr {
+    break-inside: avoid;
+  }
+  .report-table .table-scroll,
+  .table-scroll {
+    overflow: visible;
+  }
+  .report-doc-sign {
+    break-inside: avoid;
+  }
+}
+
+@page {
+  size: A4 landscape;
+  margin: 12mm;
 }
 
 /* Report List Rows */
@@ -1884,10 +3017,6 @@ textarea.form-control {
   padding-top: var(--sp-3);
 }
 
-.filter-search {
-  flex: 1 1 260px;
-  max-width: 360px;
-}
 
 .detail-list {
   display: grid;
@@ -2077,7 +3206,7 @@ body.page-enter::before {
    body.page-anim is set in layouts/main.php and removed by app.js when the
    animation ends. */
 body.page-anim .app-content {
-  animation: pageContentUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: pageContentUp 0.45s cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 
 /* Right after login, wait for the green curtain to start lifting */
@@ -2091,8 +3220,9 @@ body.page-anim .app-main {
   overflow: clip;
 }
 
+/* Subtle: a short 8px rise with a quick fade */
 @keyframes pageContentUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
 

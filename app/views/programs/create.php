@@ -1,4 +1,4 @@
-<?= Ui::pageHead('Create Program', 'Set up a program or project, then add its beneficiaries.',
+<?= Ui::pageHead('Create Program', null,
     '<a class="btn btn-outline-secondary btn-sm" href="' . e(url('/programs')) . '">Back to list</a>') ?>
 
 <form method="post" action="<?= url('/programs') ?>" novalidate>

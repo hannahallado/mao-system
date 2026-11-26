@@ -2,140 +2,89 @@
 /** Process 3.0 Map Farm and Fishery Locations (GIS). */
 class MapController extends Controller
 {
+    /** One map page: farm and fishery layers are toggled on the page itself. */
     public function index(): void
     {
-        $this->renderMap('Map Overview', 'all');
+        $this->view('map/index', [
+            'title'        => 'GIS Map',
+            'preset'       => 'all',
+            'needsLeaflet' => true,
+            'breadcrumbs'  => [['Home', '/home'], ['GIS Map', null]],
+            'features'     => $this->mapFeatures(),
+        ]);
     }
 
+    /** Old links (/map/farms, /map/fishery) now open the single map page. */
     public function farms(): void
     {
-        $this->renderMap('Farm Locations', 'farms');
+        $this->redirect('/map');
     }
 
     public function fishery(): void
     {
-        $this->renderMap('Fishery Locations', 'fishery');
-    }
-
-    private function renderMap(string $title, string $preset): void
-    {
-        $this->view('map/index', [
-            'title' => $title,
-            'preset' => $preset,
-            'breadcrumbs' => [
-                ['Home', '/home'],
-                ['GIS Mapping', null],
-                [$title, null],
-            ],
-            'features' => $this->mapFeatures(),
-        ]);
+        $this->redirect('/map');
     }
 
     /**
-     * Load only fields the map displays. Table and column names are selected
-     * from fixed allowlists so an absent or unfinished D1/D2 schema is safe.
+     * Farms and fishery assets with their location (D2 + D3). Records without
+     * coordinates are still counted so the page can say how many are unmapped.
      */
     private function mapFeatures(): array
     {
-        $tables = [
-            'farms' => ['farms', 'farm_records'],
-            'fishery' => ['fishery_records', 'fisheries', 'fishery'],
-        ];
-        $tableNames = array_merge(...array_values($tables));
-        $db = Database::connect();
-        $placeholders = implode(', ', array_fill(0, count($tableNames), '?'));
-        $stmt = $db->prepare(
-            'SELECT TABLE_NAME, COLUMN_NAME
-             FROM information_schema.COLUMNS
-             WHERE TABLE_SCHEMA = ? AND TABLE_NAME IN (' . $placeholders . ')'
-        );
-        $stmt->execute(array_merge([config('db.name')], $tableNames));
+        $resources = RecordModule::module('resources')['tabs'];
+        $features  = [];
 
-        $columnsByTable = [];
-        foreach ($stmt->fetchAll() as $column) {
-            $columnsByTable[$column['TABLE_NAME']][$column['COLUMN_NAME']] = true;
-        }
-
-        $features = [];
-        foreach ($tables as $kind => $candidates) {
-            $table = null;
-            foreach ($candidates as $candidate) {
-                if (isset($columnsByTable[$candidate])) {
-                    $table = $candidate;
-                    break;
-                }
-            }
-            if ($table === null) {
-                continue;
-            }
-
-            $fieldOptions = [
-                'id' => ['id', $kind === 'farms' ? 'farm_id' : 'fishery_id'],
-                'name' => ['name', 'farm_name', 'fishery_name', 'site_name', 'record_name'],
-                'barangay' => ['barangay', 'barangay_name', 'location_barangay'],
-                'commodity' => ['commodity', 'commodity_name', 'crop', 'primary_commodity'],
-                'category' => ['category', 'farm_type', 'fishery_type', 'type'],
-                'latitude' => ['latitude', 'lat'],
-                'longitude' => ['longitude', 'lng', 'lon'],
-                'boundary' => ['boundary_geojson', 'boundary', 'geojson'],
-                'farmer_id' => ['farmer_id'],
-            ];
-            $selected = [];
-            foreach ($fieldOptions as $alias => $options) {
-                foreach ($options as $option) {
-                    if (isset($columnsByTable[$table][$option])) {
-                        $selected[$alias] = $option;
-                        break;
-                    }
-                }
-            }
-            if (!isset($selected['id'])) {
-                continue;
-            }
-
-            $select = [];
-            foreach ($selected as $alias => $column) {
-                $select[] = '`' . $column . '` AS `' . $alias . '`';
-            }
-            $where = isset($columnsByTable[$table]['deleted_at']) ? ' WHERE `deleted_at` IS NULL' : '';
-            $records = $db->query(
-                'SELECT ' . implode(', ', $select) . ' FROM `' . $table . '`' . $where
-            )->fetchAll();
-
-            foreach ($records as $record) {
-                $id = (string) $record['id'];
-                $farmerId = $record['farmer_id'] ?? null;
+        if (RecordModule::tableReady('farms')) {
+            $rows = Model::raw(
+                "SELECT f.id, f.farm_name, f.profile_id, f.commodity, f.water_source, f.latitude, f.longitude, f.boundary_geojson,
+                        b.name AS barangay, CONCAT(p.last_name, ', ', p.first_name) AS owner
+                 FROM farms f
+                 JOIN barangays b ON b.id = f.barangay_id
+                 JOIN profiles p ON p.id = f.profile_id
+                 WHERE f.deleted_at IS NULL");
+            $fields = $resources['farms']['fields'];
+            foreach ($rows as $r) {
                 $features[] = [
-                    'id' => $id,
-                    'kind' => $kind,
-                    'label' => trim((string) ($record['name'] ?? '')) ?: ucfirst($kind) . ' ' . $id,
-                    'barangay' => trim((string) ($record['barangay'] ?? '')) ?: 'Not specified',
-                    'commodity' => trim((string) ($record['commodity'] ?? '')) ?: 'Not specified',
-                    'category' => trim((string) ($record['category'] ?? '')) ?: ucfirst($kind),
-                    'latitude' => $this->coordinate($record['latitude'] ?? null, -90, 90),
-                    'longitude' => $this->coordinate($record['longitude'] ?? null, -180, 180),
-                    'boundary' => $this->geoJson($record['boundary'] ?? null),
-                    'recordUrl' => url(($kind === 'farms' ? 'farms/' : 'fishery/') . rawurlencode($id)),
-                    'profileUrl' => $farmerId !== null && $farmerId !== ''
-                        ? url('farmers/' . rawurlencode((string) $farmerId))
-                        : null,
+                    'id'         => 'farm-' . $r['id'],
+                    'kind'       => 'farms',
+                    'label'      => $r['farm_name'] . ' (' . $r['owner'] . ')',
+                    'barangay'   => $r['barangay'],
+                    'commodity'  => $fields['commodity']['options'][$r['commodity']] ?? $r['commodity'],
+                    'category'   => $fields['water_source']['options'][$r['water_source']] ?? 'Farm',
+                    'latitude'   => $this->coordinate($r['latitude'], -90, 90),
+                    'longitude'  => $this->coordinate($r['longitude'], -180, 180),
+                    'boundary'   => $this->geoJson($r['boundary_geojson']),
+                    'recordUrl'  => url('/resources?tab=farms&q=' . rawurlencode($r['farm_name'])),
+                    'profileUrl' => url('/farmers/' . (int) $r['profile_id']),
                 ];
             }
         }
 
-        $features[] = [
-            'id' => 'sample-patic-location',
-            'kind' => 'farms',
-            'label' => 'Sample farm location',
-            'barangay' => 'Patic',
-            'commodity' => 'Rice',
-            'category' => 'Crop farm',
-            'latitude' => 10.5220,
-            'longitude' => 122.8070,
-            'boundary' => null,
-            'recordUrl' => url('farms/sample-patic-location'),
-            'profileUrl' => null,
-        ];
+        if (RecordModule::tableReady('fishery_assets')) {
+            $rows = Model::raw(
+                "SELECT a.id, a.name, a.profile_id, a.asset_type, a.species, a.latitude, a.longitude,
+                        b.name AS barangay, CONCAT(p.last_name, ', ', p.first_name) AS owner
+                 FROM fishery_assets a
+                 JOIN barangays b ON b.id = a.barangay_id
+                 JOIN profiles p ON p.id = a.profile_id
+                 WHERE a.deleted_at IS NULL");
+            $fields = $resources['fishery']['fields'];
+            foreach ($rows as $r) {
+                $features[] = [
+                    'id'         => 'fishery-' . $r['id'],
+                    'kind'       => 'fishery',
+                    'label'      => $r['name'] . ' (' . $r['owner'] . ')',
+                    'barangay'   => $r['barangay'],
+                    'commodity'  => $r['species'] ?: 'Not specified',
+                    'category'   => $fields['asset_type']['options'][$r['asset_type']] ?? 'Fishery',
+                    'latitude'   => $this->coordinate($r['latitude'], -90, 90),
+                    'longitude'  => $this->coordinate($r['longitude'], -180, 180),
+                    'boundary'   => null,
+                    'recordUrl'  => url('/resources?tab=fishery&q=' . rawurlencode($r['name'])),
+                    'profileUrl' => url('/farmers/' . (int) $r['profile_id']),
+                ];
+            }
+        }
 
         return $features;
     }

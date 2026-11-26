@@ -231,4 +231,14 @@
     render();
     fitVisibleFeatures();
     requestAnimationFrame(() => map.invalidateSize());
+
+    // Redraw tiles whenever the map box changes size (sidebar collapsed or
+    // expanded, window resized), otherwise grey gaps appear at the edges
+    if (window.ResizeObserver) {
+        let pending = 0;
+        new ResizeObserver(() => {
+            cancelAnimationFrame(pending);
+            pending = requestAnimationFrame(() => map.invalidateSize({ pan: false }));
+        }).observe(map.getContainer());
+    }
 })();

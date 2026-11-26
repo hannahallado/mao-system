@@ -21,7 +21,8 @@ $empty = $hasFilters
     ? Ui::emptyState('No matching programs', 'Try different filters.', '<a class="btn btn-outline-secondary btn-sm" href="' . e(url('/programs')) . '">Clear filters</a>')
     : Ui::emptyState('No programs yet', Auth::isAgriculturist() ? 'Create the first program to start listing beneficiaries.' : 'The Municipal Agriculturist creates programs.', $createBtn);
 ?>
-<?= Ui::pageHead('Programs and Projects', 'Programs received from the LGU, DA and partner agencies.', $createBtn) ?>
+<?= Ui::pageHead('Programs', null, $createBtn) ?>
+<?= partial('programs/_tabs', ['active' => 'programs']) ?>
 
 <?= Ui::filterBar('/programs', [
     ['type' => 'search', 'name' => 'q', 'placeholder' => 'Search program name or ID'],

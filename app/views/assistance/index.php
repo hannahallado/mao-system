@@ -18,7 +18,8 @@ $empty = $hasFilters
     ? Ui::emptyState('No matching distributions', 'Try different filters.', '<a class="btn btn-outline-secondary btn-sm" href="' . e(url('/assistance')) . '">Clear filters</a>')
     : Ui::emptyState('No distributions recorded yet', 'Assistance given to beneficiaries will be listed here.', $recordBtn);
 ?>
-<?= Ui::pageHead('Assistance Distribution', 'Everything given to beneficiaries, newest first.', $recordBtn) ?>
+<?= Ui::pageHead('Programs', null, $recordBtn) ?>
+<?= partial('programs/_tabs', ['active' => 'distribution']) ?>
 
 <?= Ui::filterBar('/assistance', [
     ['type' => 'search', 'name' => 'q', 'placeholder' => 'Search beneficiary, assistance ID or receipt no.'],

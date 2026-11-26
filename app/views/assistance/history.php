@@ -1,8 +1,11 @@
 <?php
 $seg = fn (string $key, string $label) => '<li class="nav-item"><a class="nav-link ' . ($by === $key ? 'active' : '') . '" href="' . e(url('/assistance/history?by=' . $key)) . '">' . e($label) . '</a></li>';
 ?>
-<?= Ui::pageHead('Assistance History', 'See everything a farmer or fisherfolk received, or everything a program gave out.',
-    '<ul class="nav nav-segmented">' . $seg('farmer', 'By farmer') . $seg('program', 'By program') . '</ul>') ?>
+<?= Ui::pageHead('Programs') ?>
+<?= partial('programs/_tabs', ['active' => 'history']) ?>
+<div class="d-flex justify-content-end align-items-center flex-wrap gap-2 mb-3">
+<ul class="nav nav-segmented"><?= $seg('farmer', 'By farmer') . $seg('program', 'By program') ?></ul>
+</div>
 
 <?php if ($by === 'farmer'): ?>
     <form method="get" action="<?= url('/assistance/history') ?>" class="filter-bar">
