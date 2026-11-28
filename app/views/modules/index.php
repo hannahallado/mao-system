@@ -167,6 +167,9 @@ if (!$isOverview && $ready && $canWrite) {
         $col = $f['col'] ?? 'col-md-6';
         $req = !empty($f['required']);
         $value = $editing ? RecordModule::formValues($tab, $editRow)[$name] : ($f['default'] ?? '');
+        if (!$editing && $name === 'monitored_by' && $value === '') {
+            $value = Auth::user()['full_name'] ?? '';
+        }
         // "+ Add" from a profile page: ?form=add&profile_id=N picks that person
         if (!$editing && $name === 'profile_id' && ctype_digit((string) ($_GET['profile_id'] ?? ''))) {
             $value = (string) $_GET['profile_id'];
@@ -180,6 +183,7 @@ if (!$isOverview && $ready && $canWrite) {
             case 'profile':
             case 'farm':
             case 'organization':
+            case 'user':
                 $fieldHtml .= Ui::select($name, $f['label'], RecordModule::options($f), [
                     'value' => $value, 'required' => $req, 'col' => $col, 'help' => $f['help'] ?? null,
                     'placeholder' => $req ? 'Select…' : '— None —']);

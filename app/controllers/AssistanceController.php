@@ -54,7 +54,7 @@ class AssistanceController extends Controller
             'unit_value'             => 'nullable|numeric',
             'date_distributed'       => 'required|date|not_future',
             'ack_receipt_no'         => 'nullable|max:40',
-            'released_by'            => 'nullable|max:120',
+            'released_by'            => 'required|max:120',
         ], self::LABELS);
         $errors = $v->errors();
         $clean = $v->validated();

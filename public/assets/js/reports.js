@@ -30,7 +30,6 @@
       });
       head.push([]);
 
-      // Header block, then the table (numbers stay numbers, "—" becomes blank)
       const ws = XLSX.utils.aoa_to_sheet(head);
       const rows = [...table.querySelectorAll("tr")].map((tr) =>
         [...tr.children].map((cell) => {

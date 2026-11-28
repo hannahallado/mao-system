@@ -31,6 +31,7 @@ $router->get('/ui-kit', 'StyleGuideController@index');
 $router->get('/farmers',                  'FarmerController@index');
 $router->get('/farmers/create',           'FarmerController@create');
 $router->post('/farmers',                 'FarmerController@store');
+$router->post('/farmers/import',          'FarmerController@importProfiles');
 $router->post('/farmers/check-duplicate', 'FarmerController@checkDuplicate');   // JSON for the warning modal
 $router->get('/farmers/{id}',             'FarmerController@show');
 $router->get('/farmers/{id}/edit',        'FarmerController@edit');

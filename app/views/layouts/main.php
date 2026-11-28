@@ -23,6 +23,7 @@ unset($_SESSION['just_logged_in']);
 ?>
 <body class="page-anim<?= $pageEnter ? ' page-enter' : '' ?>"<?= $pageEnter ? ' data-fresh-login="1"' : '' ?>
       data-logout-url="<?= e(url('/logout')) ?>">
+<a class="skip-link" href="#main-content">Skip to main content</a>
 <script>
     // Restore a collapsed sidebar before the first paint (no flash)
     try {
@@ -37,8 +38,9 @@ unset($_SESSION['just_logged_in']);
         <?php require APP_PATH . '/views/partials/sidebar.php'; ?>
         <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
         <div class="app-main">
-            <main class="app-content">
+            <main class="app-content" id="main-content" tabindex="-1">
                 <?php require APP_PATH . '/views/partials/flash.php'; ?>
+                <?php require APP_PATH . '/views/partials/breadcrumbs.php'; ?>
                 <?= $content ?>
             </main>
             <footer class="app-footer">

@@ -6,7 +6,7 @@ $v = fn (string $k) => $profile[$k] ?? '';
     Ui::input('last_name',   'Last name',   ['value' => $v('last_name'),   'required' => true, 'col' => 'col-md-4', 'maxlength' => 60])
   . Ui::input('first_name',  'First name',  ['value' => $v('first_name'),  'required' => true, 'col' => 'col-md-4', 'maxlength' => 60])
   . Ui::input('middle_name', 'Middle name', ['value' => $v('middle_name'), 'col' => 'col-md-3', 'maxlength' => 60])
-  . Ui::input('suffix',      'Suffix',      ['value' => $v('suffix'),      'col' => 'col-md-1', 'maxlength' => 10, 'placeholder' => 'Jr.'])
+  . Ui::select('suffix', 'Suffix', ['' => 'None', 'Jr.' => 'Jr.', 'Sr.' => 'Sr.', 'II' => 'II', 'III' => 'III', 'IV' => 'IV', 'V' => 'V'], ['value' => $v('suffix'), 'col' => 'col-md-1', 'placeholder' => 'None'])
   . Ui::select('sex', 'Sex', Profile::SEXES, ['value' => $v('sex'), 'required' => true, 'col' => 'col-md-4'])
   . Ui::input('birthdate',   'Birthdate',   ['value' => $v('birthdate'),   'type' => 'date', 'max' => date('Y-m-d'), 'col' => 'col-md-4',
         'help' => 'Helps tell people with the same name apart.'])

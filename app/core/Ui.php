@@ -74,13 +74,16 @@ class Ui
                     . '" placeholder="' . e($f['placeholder'] ?? 'Search') . '" aria-label="' . e($f['placeholder'] ?? 'Search') . '"></div>';
                 continue;
             }
-            $html .= '<select class="form-select" name="' . e($name) . '" aria-label="' . e($f['all'] ?? $name) . '">';
+            $allLabel = (string) ($f['all'] ?? 'All');
+            $fieldLabel = trim(preg_replace('/^All\s+/i', '', $allLabel) ?: $name);
+            $html .= '<div class="filter-field"><label class="filter-label" for="filter_' . e($name) . '">' . e($fieldLabel) . '</label>'
+                . '<select class="form-select" id="filter_' . e($name) . '" name="' . e($name) . '" aria-label="' . e($allLabel) . '">';
             $html .= '<option value="">' . e($f['all'] ?? 'All') . '</option>';
             foreach ($f['options'] as $optValue => $label) {
                 $sel = ((string) $optValue === $val) ? ' selected' : '';
                 $html .= '<option value="' . e($optValue) . '"' . $sel . '>' . e($label) . '</option>';
             }
-            $html .= '</select>';
+            $html .= '</select></div>';
         }
         $html .= '<button class="btn btn-outline-secondary btn-sm" type="submit">Search</button>';
         if ($active) {
@@ -161,8 +164,9 @@ class Ui
     private static function feedback(string $name, ?string $help): string
     {
         $err = errors($name);
-        return ($err ? '<div class="invalid-feedback d-block">' . e($err) . '</div>' : '')
+        $feedback = ($err ? '<div class="invalid-feedback d-block">' . e($err) . '</div>' : '')
              . ($help && !$err ? '<div class="form-text">' . e($help) . '</div>' : '');
+        return $feedback === '' ? '' : '<span id="f_' . e($name) . '_feedback">' . $feedback . '</span>';
     }
 
     /**
@@ -173,7 +177,12 @@ class Ui
     {
         $value = old($name, $o['value'] ?? '');
         $cls   = 'form-control' . (errors($name) ? ' is-invalid' : '');
+        $aria = '';
+        if (!empty($o['help']) || errors($name)) {
+            $aria = ' aria-describedby="f_' . e($name) . '_feedback"';
+        }
         $in = '<input class="' . $cls . '" id="f_' . e($name) . '" name="' . e($name) . '" type="' . e($o['type'] ?? 'text') . '"'
+            . $aria
             . ' value="' . e($value) . '"'
             . (!empty($o['placeholder']) ? ' placeholder="' . e($o['placeholder']) . '"' : '')
             . (!empty($o['maxlength']) ? ' maxlength="' . (int) $o['maxlength'] . '"' : '')

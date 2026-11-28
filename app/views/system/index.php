@@ -224,10 +224,30 @@ $tabUrl = fn (string $key, array $q = []) => url('/system?' . http_build_query([
                 <?php else: ?>
                     <div class="table-scroll">
                         <table class="table mb-0">
-                            <thead><tr><th>File</th><th>Created</th><th class="num">Size</th></tr></thead>
+                            <thead><tr><th>File</th><th>Created</th><th class="num">Size</th><th>Actions</th></tr></thead>
                             <tbody>
                                 <?php foreach ($storedBackups as $b): ?>
-                                    <tr><td><code><?= e($b['file']) ?></code></td><td><?= e(date('M j, Y g:i A', $b['created'])) ?></td><td class="num"><?= number_format($b['size_kb']) ?> KB</td></tr>
+                                    <tr>
+                                        <td><code><?= e($b['file']) ?></code></td>
+                                        <td><?= e(date('M j, Y g:i A', $b['created'])) ?></td>
+                                        <td class="num"><?= number_format($b['size_kb']) ?> KB</td>
+                                        <td>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <form method="post" action="<?= url('/system/backup') ?>" data-no-loading>
+                                                    <?= Csrf::field() ?>
+                                                    <input type="hidden" name="mode" value="verify">
+                                                    <input type="hidden" name="file" value="<?= e($b['file']) ?>">
+                                                    <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="bi bi-shield-check" aria-hidden="true"></i> Verify</button>
+                                                </form>
+                                                <form method="post" action="<?= url('/system/backup') ?>" data-confirm-restore>
+                                                    <?= Csrf::field() ?>
+                                                    <input type="hidden" name="mode" value="restore">
+                                                    <input type="hidden" name="file" value="<?= e($b['file']) ?>">
+                                                    <button class="btn btn-outline-danger btn-sm" type="submit"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Restore</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
