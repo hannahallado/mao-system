@@ -31,7 +31,7 @@ $programSelected = (string) old('program_id', $programId);
     ) ?>
 
     <?= Ui::section('Release details',
-        Ui::input('released_by', 'Releasing personnel', ['value' => Auth::user()['full_name'] ?? '', 'col' => 'col-md-4', 'maxlength' => 120])
+        Ui::select('released_by', 'Releasing personnel', Lookup::users(), ['value' => Auth::user()['full_name'] ?? '', 'required' => true, 'col' => 'col-md-4', 'placeholder' => 'Select personnel'])
       . Ui::input('ack_receipt_no', 'Acknowledgment receipt no.', ['col' => 'col-md-4', 'maxlength' => 40, 'help' => 'Optional. From the signed receipt or distribution sheet.'])
       . Ui::input('unit_value', 'Value per unit (PHP)', ['col' => 'col-md-4', 'inputmode' => 'decimal', 'placeholder' => '0.00', 'help' => 'Optional. Used to compute the total value.'])
     ) ?>

@@ -67,7 +67,10 @@ $readsReady    = NotificationService::readsReady();
         <!-- Profile: display only (log out is in the sidebar) -->
         <div class="profile" title="<?= e($name) ?>">
             <span class="profile-icon" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
-            <span class="profile-role"><?= e($roleName) ?></span>
+            <span class="profile-copy">
+                <span class="profile-name"><?= e($name) ?></span>
+                <span class="profile-role"><?= e($roleName) ?></span>
+            </span>
         </div>
     </div>
 </header>

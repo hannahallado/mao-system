@@ -66,7 +66,10 @@ $columns = [
     ['label' => 'Actions', 'class' => 'table-actions', 'render' => $actions],
 ];
 
-$registerBtn = '<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#registerModal">+ Register Profile</button>';
+$registerBtn = '<div class="d-flex gap-2">'
+    . '<button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#importModal"><i class="bi bi-upload" aria-hidden="true"></i> Import Profiles</button>'
+    . '<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#registerModal">+ Register Profile</button>'
+    . '</div>';
 
 $empty = $hasFilters
     ? Ui::emptyState('No matching profiles', 'Try a different name or number, or clear the filters.',
@@ -89,6 +92,44 @@ $openRegister = !$editing && (($openRegister ?? false) || errors() !== []);
 
 <?= Ui::dataTable($columns, $result['data'], ['empty' => $empty]) ?>
 <?= Ui::pagination($result, '/farmers', array_filter($filters, fn ($v) => $v !== '')) ?>
+
+<!-- Import Profiles -->
+<div class="modal fade register-modal" id="importModal" tabindex="-1" aria-labelledby="importModalTitle" aria-hidden="true" data-bs-backdrop="static" data-import-url="<?= e(url('/farmers/import')) ?>">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="importModalTitle">Import Profiles</h5>
+                    <p class="register-modal-sub">Upload a CSV or Excel file with one person per row.</p>
+                </div>
+                <button type="button" class="x-close-btn" data-bs-dismiss="modal" aria-label="Close"><span class="bar"></span><span class="bar"></span></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small">
+                    Required columns: <strong>last_name, first_name, sex, barangay</strong>. Optional: <strong>middle_name, suffix, birthdate, contact_no, address_detail, livelihood_type, rsbsa_no, fishr_no</strong>.
+                </div>
+                <div class="d-flex gap-2 mb-3">
+                    <a class="btn btn-outline-secondary btn-sm" href="data:text/csv;charset=utf-8,last_name,first_name,middle_name,suffix,sex,birthdate,contact_no,barangay,address_detail,livelihood_type,rsbsa_no,fishr_no%0ADela%20Cruz,Juan,,,Male,,09171234567,Barangay%20Zone%201,Purok%201,farmer,,"
+                       download="profile-import-template.csv"><i class="bi bi-download" aria-hidden="true"></i> Download CSV template</a>
+                </div>
+                <label class="form-label" for="profileImportFile">CSV or Excel file</label>
+                <input class="form-control" type="file" id="profileImportFile" accept=".csv,.xlsx,.xls">
+                <div class="form-text">Files with more than 1,000 rows will only import the first 1,000 rows.</div>
+                <div class="mt-3" id="profileImportPreview" hidden>
+                    <strong>Preview</strong>
+                    <div class="table-scroll mt-2"><table class="table table-sm mb-0"><thead><tr id="profileImportPreviewHead"></tr></thead><tbody id="profileImportPreviewBody"></tbody></table></div>
+                </div>
+                <div id="profileImportResult" class="mt-3" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="profileImportSubmit" disabled><i class="bi bi-upload" aria-hidden="true"></i> Import profiles</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
 
 <?php
 // Edit modal body when coming back from a failed save (uses old input + errors)

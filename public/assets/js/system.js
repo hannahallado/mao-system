@@ -1,5 +1,17 @@
 // System page: Add / Edit User modal and the deactivate / reactivate confirmation.
 (function () {
+  document.addEventListener("submit", (e) => {
+    if (!e.target.matches("[data-confirm-restore]") || e.target.dataset.confirmed) return;
+    e.preventDefault();
+    confirm(
+      "Restore this backup? The current database will be replaced. A pre-restore safety backup will be created automatically.",
+      () => {
+        e.target.dataset.confirmed = "1";
+        e.target.submit();
+      },
+    );
+  });
+
   // Confirm before deactivating or reactivating (app.js confirm() shows a modal)
   document.addEventListener("submit", (e) => {
     const btn = e.submitter || e.target.querySelector("[data-confirm]");

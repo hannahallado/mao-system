@@ -179,6 +179,14 @@ class RecordModule
                 }
                 return $cache['organization'] ??= array_column(Model::raw(
                     'SELECT id, name FROM organizations WHERE deleted_at IS NULL ORDER BY name LIMIT 2000'), 'name', 'id');
+            case 'user':
+                $users = array_column(Model::raw(
+                    'SELECT full_name, full_name AS label FROM users WHERE is_active = 1 ORDER BY full_name'), 'label', 'full_name');
+                $previous = array_column(Model::raw(
+                    "SELECT DISTINCT monitored_by AS name FROM production_records WHERE monitored_by IS NOT NULL AND monitored_by <> '' AND deleted_at IS NULL"), 'name', 'name');
+                $trainingPeople = array_column(Model::raw(
+                    "SELECT DISTINCT resource_person AS name FROM trainings WHERE resource_person IS NOT NULL AND resource_person <> '' AND deleted_at IS NULL"), 'name', 'name');
+                return $users + $previous + $trainingPeople;
         }
         return [];
     }
@@ -203,6 +211,7 @@ class RecordModule
             $r = [!empty($f['required']) ? 'required' : 'nullable'];
             switch ($f['type']) {
                 case 'text':
+                case 'user':
                 case 'textarea':
                     $r[] = 'max:' . ($f['max'] ?? 2000);
                     break;

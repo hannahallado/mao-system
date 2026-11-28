@@ -3,6 +3,10 @@
 $v = fn (string $k) => $program[$k] ?? '';
 $allocations = $program['allocations'] ?? [];
 $assistanceTypes = $assistanceTypes ?? [];
+$years = [];
+for ($year = (int) date('Y') + 1; $year >= (int) date('Y') - 10; $year--) {
+    $years[(string) $year] = (string) $year;
+}
 ?>
 <?= Ui::section('Program information',
     Ui::input('name', 'Program name', ['value' => $v('name'), 'required' => true, 'col' => 'col-md-8', 'maxlength' => 150, 'placeholder' => 'e.g. Rice Seed Distribution 2026'])
@@ -12,7 +16,7 @@ $assistanceTypes = $assistanceTypes ?? [];
 ) ?>
 
 <?= Ui::section('Schedule and targets',
-    Ui::input('year', 'Year', ['value' => $v('year'), 'required' => true, 'col' => 'col-md-2', 'maxlength' => 4, 'inputmode' => 'numeric'])
+    Ui::select('year', 'Year', $years, ['value' => $v('year') ?: date('Y'), 'required' => true, 'col' => 'col-md-2'])
   . Ui::input('start_date', 'Start date', ['value' => $v('start_date'), 'type' => 'date', 'col' => 'col-md-3'])
   . Ui::input('end_date', 'End date', ['value' => $v('end_date'), 'type' => 'date', 'col' => 'col-md-3'])
   . Ui::select('status', 'Status', Program::STATUSES, ['value' => $v('status') ?: 'planned', 'required' => true, 'col' => 'col-md-4'])

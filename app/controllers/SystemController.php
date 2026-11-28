@@ -238,6 +238,65 @@ class SystemController extends Controller
     {
         $name = (string) config('db.name');
 
+        $mode = (string) $this->input('mode', '');
+        if ($mode === 'verify' || $mode === 'restore') {
+            $file = basename((string) $this->input('file', ''));
+            $path = self::BACKUP_DIR . '/' . $file;
+            if ($file === '' || !preg_match('/^mao-system-(?:[0-9]{8}-[0-9]{6}-[a-zA-Z0-9]+|pre-restore-[0-9]{8}-[0-9]{6}-[a-zA-Z0-9]+)\\.sql$/', $file)
+                || !is_file($path) || !is_readable($path)) {
+                flash('danger', 'The selected backup file is missing or invalid.');
+                $this->redirect('/system?tab=backup');
+            }
+
+            $sql = (string) file_get_contents($path);
+            $verification = $this->verifyBackupSql($sql, $name);
+            if (!$verification['valid']) {
+                flash('danger', 'Backup verification failed: ' . implode(' ', $verification['issues']));
+                AuditService::log('verify', 'backup', 0, null, ['file' => $file, 'valid' => false], 'Database backup verification failed');
+                $this->redirect('/system?tab=backup');
+            }
+
+            if ($mode === 'verify') {
+                flash('success', 'Backup verified: ' . $verification['tables'] . ' tables and ' . $verification['inserts'] . ' insert batches were found.');
+                AuditService::log('verify', 'backup', 0, null, ['file' => $file, 'valid' => true, 'tables' => $verification['tables']], 'Database backup verified');
+                $this->redirect('/system?tab=backup');
+            }
+
+            $preRestore = 'mao-system-pre-restore-' . date('Ymd-His') . '-' . bin2hex(random_bytes(4)) . '.sql';
+            $prePath = self::BACKUP_DIR . '/' . $preRestore;
+            $snapshot = fopen($prePath, 'xb');
+            if ($snapshot === false) {
+                flash('danger', 'Could not create a safety backup before restoring.');
+                $this->redirect('/system?tab=backup');
+            }
+            try {
+                $this->writeDump($snapshot, $name);
+            } catch (Throwable $e) {
+                fclose($snapshot);
+                @unlink($prePath);
+                throw $e;
+            }
+            fclose($snapshot);
+
+            $pdo = Database::connect();
+            $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+            try {
+                foreach ($this->splitSqlStatements($sql) as $statement) {
+                    $pdo->exec($statement);
+                }
+                $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+            } catch (Throwable $e) {
+                $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+                flash('danger', 'Restore failed. A pre-restore safety backup was saved as ' . $preRestore . '.');
+                AuditService::log('restore', 'backup', 0, null, ['file' => $file, 'success' => false, 'safety_backup' => $preRestore], 'Database restore failed');
+                $this->redirect('/system?tab=backup');
+            }
+
+            flash('success', 'Backup restored successfully. A pre-restore safety copy was saved as ' . $preRestore . '.');
+            AuditService::log('restore', 'backup', 0, null, ['file' => $file, 'success' => true, 'safety_backup' => $preRestore], 'Database backup restored');
+            $this->redirect('/system?tab=backup');
+        }
+
         if ($this->input('mode') === 'server') {
             if (!is_dir(self::BACKUP_DIR) || !is_writable(self::BACKUP_DIR)) {
                 flash('danger', 'The backup folder (storage/backups) is missing or not writable.');
@@ -280,6 +339,71 @@ class SystemController extends Controller
         $files = glob(self::BACKUP_DIR . '/mao-system-*.sql') ?: [];
         usort($files, fn ($a, $b) => filemtime($b) <=> filemtime($a));
         return array_map(fn ($p) => ['file' => basename($p), 'created' => filemtime($p), 'size_kb' => (int) ceil(filesize($p) / 1024)], $files);
+    }
+
+    private function verifyBackupSql(string $sql, string $databaseName): array
+    {
+        $issues = [];
+        if (strlen($sql) < 200) $issues[] = 'The file is too small to be a database backup.';
+        if (!str_contains($sql, '-- MAO Information System backup')) $issues[] = 'The MAO backup signature is missing.';
+        if (!str_contains($sql, '-- Database: ' . $databaseName)) $issues[] = 'The database name does not match this system.';
+        if (!str_contains($sql, 'SET FOREIGN_KEY_CHECKS = 1')) $issues[] = 'The backup footer is incomplete.';
+
+        $tables = preg_match_all('/^DROP TABLE IF EXISTS `/m', $sql);
+        $inserts = preg_match_all('/^INSERT INTO `/m', $sql);
+        if ($tables === 0) $issues[] = 'No table definitions were found.';
+        return [
+            'valid' => $issues === [],
+            'issues' => $issues,
+            'tables' => (int) $tables,
+            'inserts' => (int) $inserts,
+        ];
+    }
+
+    private function splitSqlStatements(string $sql): array
+    {
+        $statements = [];
+        $buffer = '';
+        $quote = null;
+        $escaped = false;
+        $length = strlen($sql);
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = $sql[$i];
+            if ($quote !== null) {
+                $buffer .= $char;
+                if ($escaped) {
+                    $escaped = false;
+                } elseif ($char === '\\') {
+                    $escaped = true;
+                } elseif ($char === $quote) {
+                    $quote = null;
+                }
+                continue;
+            }
+            if ($char === "'" || $char === '"' || $char === '`') {
+                $quote = $char;
+                $buffer .= $char;
+                continue;
+            }
+            if ($char === ';') {
+                $statement = trim($buffer);
+                if ($statement !== '' && !str_starts_with(ltrim($statement), '--')) {
+                    $statements[] = $statement;
+                }
+                $buffer = '';
+                continue;
+            }
+            $buffer .= $char;
+        }
+
+        $statement = trim($buffer);
+        if ($statement !== '') $statements[] = $statement;
+
+        return array_values(array_filter($statements, function (string $statement): bool {
+            $line = trim(preg_replace('/^--.*$/m', '', $statement) ?? $statement);
+            return $line !== '';
+        }));
     }
 
     /** Writes the dump to $out; returns the number of tables. */
