@@ -41,7 +41,6 @@ $presetName = $preset === 'farms' ? 'Farm' : ($preset === 'fishery' ? 'Fishery' 
                 <input class="form-check-input" id="map-layer-farms" type="checkbox" value="farms"
                        data-default-checked="<?= $preset !== 'fishery' ? 'true' : 'false' ?>"
                     <?= $preset !== 'fishery' ? 'checked' : '' ?>>
-                <span class="map-legend-dot map-legend-farm" aria-hidden="true"></span>
                 <span>Farms</span>
                 <span class="map-layer-total"><?= count(array_filter($features, static fn ($item) => $item['kind'] === 'farms')) ?></span>
             </label>
@@ -49,14 +48,9 @@ $presetName = $preset === 'farms' ? 'Farm' : ($preset === 'fishery' ? 'Fishery' 
                 <input class="form-check-input" id="map-layer-fishery" type="checkbox" value="fishery"
                        data-default-checked="<?= $preset !== 'farms' ? 'true' : 'false' ?>"
                     <?= $preset !== 'farms' ? 'checked' : '' ?>>
-                <span class="map-legend-dot map-legend-fishery" aria-hidden="true"></span>
                 <span>Fishery</span>
                 <span class="map-layer-total"><?= count(array_filter($features, static fn ($item) => $item['kind'] === 'fishery')) ?></span>
             </label>
-            <div class="map-location-reference">
-                <span class="map-legend-dot map-legend-reference" aria-hidden="true"></span>
-                <span>Pulupandan map reference</span>
-            </div>
         </div>
 
         <div class="map-filter-heading">

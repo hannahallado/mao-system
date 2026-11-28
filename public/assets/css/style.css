@@ -1596,6 +1596,7 @@ textarea.form-control {
   font-size: 15px;
   font-weight: 600;
   color: var(--c-primary);
+  
 }
 
 .modal-body {
@@ -3221,17 +3222,10 @@ a.stat-card:hover {
   border-radius: var(--r-lg);
 }
 
-.modal-content::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3px;
-  background: var(--gov-stripe);
-  z-index: 1;
-}
+
 
 .modal-header {
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   padding: 16px 16px 14px 20px;
   background: var(--c-head-bg);
