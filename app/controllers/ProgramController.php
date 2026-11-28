@@ -31,7 +31,11 @@ class ProgramController extends Controller
 
     public function create(): void
     {
-        $this->renderForm('create', ['status' => 'planned', 'year' => date('Y')]);
+        $this->renderForm('create', [
+            'status' => 'planned',
+            'year' => date('Y'),
+            'start_date' => date('Y-m-d'),
+        ]);
     }
 
     public function store(): void

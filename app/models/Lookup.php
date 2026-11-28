@@ -12,6 +12,16 @@ class Lookup
         );
     }
 
+    /** Active system personnel available in personnel dropdowns. */
+    public static function users(): array
+    {
+        return self::$cache['users'] ??= array_column(
+            Model::raw('SELECT full_name, full_name AS label FROM users WHERE is_active = 1 ORDER BY full_name'),
+            'label',
+            'full_name'
+        );
+    }
+
     /** Get profile statuses */
     public static function profileStatuses(): array
     {

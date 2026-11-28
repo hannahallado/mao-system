@@ -101,3 +101,150 @@
     });
   }
 })();
+
+// Bulk profile import: CSV or Excel, with preview and duplicate-safe server insertion.
+(function () {
+  const fileInput = document.getElementById("profileImportFile");
+  const submit = document.getElementById("profileImportSubmit");
+  const preview = document.getElementById("profileImportPreview");
+  const previewHead = document.getElementById("profileImportPreviewHead");
+  const previewBody = document.getElementById("profileImportPreviewBody");
+  const result = document.getElementById("profileImportResult");
+  const importModal = document.getElementById("importModal");
+  let rows = [];
+
+  if (!fileInput || !submit) return;
+
+  function parseCsv(text) {
+    const records = [];
+    let record = [];
+    let field = "";
+    let quoted = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (char === '"' && quoted && text[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (char === '"') {
+        quoted = !quoted;
+      } else if (char === "," && !quoted) {
+        record.push(field.trim());
+        field = "";
+      } else if ((char === "\n" || char === "\r") && !quoted) {
+        if (char === "\r" && text[i + 1] === "\n") i++;
+        record.push(field.trim());
+        if (record.some((value) => value !== "")) records.push(record);
+        record = [];
+        field = "";
+      } else {
+        field += char;
+      }
+    }
+    if (field !== "" || record.length) {
+      record.push(field.trim());
+      if (record.some((value) => value !== "")) records.push(record);
+    }
+    return records;
+  }
+
+  function normalizeRecords(records) {
+    if (!records.length) return [];
+    const headers = records[0].map((header) => String(header).trim());
+    return records.slice(1).slice(0, 1000).map((values) =>
+      Object.fromEntries(headers.map((header, index) => [header, String(values[index] ?? "").trim()])),
+    );
+  }
+
+  function showPreview(data) {
+    preview.hidden = false;
+    previewHead.innerHTML = "";
+    previewBody.innerHTML = "";
+    if (!data.length) {
+      preview.hidden = true;
+      submit.disabled = true;
+      return;
+    }
+    const headers = Object.keys(data[0]).slice(0, 8);
+    headers.forEach((header) => {
+      const th = document.createElement("th");
+      th.textContent = header;
+      previewHead.appendChild(th);
+    });
+    data.slice(0, 5).forEach((row) => {
+      const tr = document.createElement("tr");
+      headers.forEach((header) => {
+        const td = document.createElement("td");
+        td.textContent = row[header] || "—";
+        tr.appendChild(td);
+      });
+      previewBody.appendChild(tr);
+    });
+    submit.disabled = false;
+  }
+
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files?.[0];
+    result.hidden = true;
+    rows = [];
+    submit.disabled = true;
+    if (!file) return;
+
+    try {
+      const name = file.name.toLowerCase();
+      if (name.endsWith(".csv")) {
+        rows = normalizeRecords(parseCsv(await file.text()));
+      } else if (window.XLSX) {
+        const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }).slice(0, 1000);
+      } else {
+        throw new Error("The Excel reader could not be loaded. Try uploading a CSV file.");
+      }
+      showPreview(rows);
+    } catch (error) {
+      result.hidden = false;
+      result.className = "alert alert-danger mt-3";
+      result.textContent = error.message || "The selected file could not be read.";
+    }
+  });
+
+  submit.addEventListener("click", async () => {
+    if (!rows.length) return;
+    submit.disabled = true;
+    submit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Importing...';
+    result.hidden = true;
+    try {
+      const res = await fetch(importModal?.dataset.importUrl || "/farmers/import", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content || "",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({ rows }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "The profiles could not be imported.");
+      result.hidden = false;
+      result.className = data.skipped
+        ? "alert alert-warning mt-3"
+        : "alert alert-success mt-3";
+      result.innerHTML =
+        "<strong>" + data.imported + " profile(s) imported.</strong>" +
+        (data.skipped ? " " + data.skipped + " row(s) skipped." : "") +
+        (data.errors?.length ? "<ul class='mb-0 mt-2'>" + data.errors.slice(0, 10).map((error) =>
+          "<li>" + escapeHtml(error) + "</li>",
+        ).join("") + "</ul>" : "");
+      if (data.imported) window.setTimeout(() => window.location.reload(), 1500);
+    } catch (error) {
+      result.hidden = false;
+      result.className = "alert alert-danger mt-3";
+      result.textContent = error.message || "The import could not be completed.";
+    } finally {
+      submit.disabled = false;
+      submit.innerHTML = '<i class="bi bi-upload" aria-hidden="true"></i> Import profiles';
+    }
+  });
+})();

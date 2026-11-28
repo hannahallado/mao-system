@@ -12,6 +12,37 @@ function csrfHeaders(extra = {}) {
   };
 }
 
+// Global slow-operation indicator for AJAX fetches.
+const systemLoadingBar = document.createElement("div");
+systemLoadingBar.className = "system-loading-bar";
+systemLoadingBar.setAttribute("aria-hidden", "true");
+document.addEventListener("DOMContentLoaded", () => {
+  document.body.appendChild(systemLoadingBar);
+});
+if (!document.body.contains(systemLoadingBar)) {
+  document.body.appendChild(systemLoadingBar);
+}
+let activeFetches = 0;
+const nativeFetch = window.fetch.bind(window);
+window.fetch = async (...args) => {
+  activeFetches++;
+  document.body.classList.add("is-loading");
+  systemLoadingBar.classList.add("is-active");
+  try {
+    return await nativeFetch(...args);
+  } finally {
+    activeFetches = Math.max(0, activeFetches - 1);
+    if (activeFetches === 0) {
+      window.setTimeout(() => {
+        if (activeFetches === 0) {
+          document.body.classList.remove("is-loading");
+          systemLoadingBar.classList.remove("is-active");
+        }
+      }, 180);
+    }
+  }
+};
+
 // Custom confirmation dialog
 // Can be used two ways:
 // 1. confirm('message', callback) - shows modal and calls callback on confirm
@@ -190,4 +221,34 @@ document.querySelectorAll("form[data-auto-submit]").forEach((form) => {
     .forEach((sel) =>
       sel.addEventListener("change", () => form.requestSubmit()),
     );
+});
+
+// Keep form actions unambiguous and prevent accidental duplicate submissions.
+document.querySelectorAll("form").forEach((form) => {
+  form.addEventListener("submit", () => {
+    if (form.matches("[data-no-loading], [data-duplicate-check]")) return;
+    const submit = form.querySelector('[type="submit"]:not([disabled])');
+    if (!submit) return;
+    submit.disabled = true;
+    submit.dataset.originalHtml = submit.innerHTML;
+    submit.innerHTML =
+      '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Saving...';
+  });
+});
+
+// Successful feedback is visible long enough to notice, then closes cleanly.
+document.querySelectorAll(".app-content > .alert").forEach((alert) => {
+  if (alert.classList.contains("alert-danger")) return;
+  window.setTimeout(() => {
+    if (window.bootstrap) bootstrap.Alert.getOrCreateInstance(alert).close();
+  }, 5000);
+});
+
+// Close the mobile navigation after a destination is selected.
+document.querySelectorAll(".sidebar a.nav-link-item").forEach((link) => {
+  link.addEventListener("click", () => {
+    if (window.matchMedia("(max-width: 1199px)").matches) {
+      document.body.classList.remove("sidebar-open");
+    }
+  });
 });

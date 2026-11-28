@@ -64,6 +64,113 @@ class FarmerController extends Controller
 
     private const REGISTER_URL = '/farmers?register=1';
 
+    /** Import profiles from CSV/Excel JSON prepared in the browser. */
+    public function importProfiles(): void
+    {
+        if (!$this->isAjax()) {
+            $this->redirect(self::REGISTER_URL);
+        }
+
+        $payload = json_decode((string) file_get_contents('php://input'), true);
+        $rows = is_array($payload['rows'] ?? null) ? $payload['rows'] : [];
+        if (!$rows) {
+            $this->json(['ok' => false, 'message' => 'No profile rows were found.'], 422);
+        }
+
+        $barangays = Lookup::barangays();
+        $barangayByName = [];
+        foreach ($barangays as $id => $name) {
+            $barangayByName[mb_strtolower(trim((string) $name))] = (int) $id;
+        }
+
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $pdo = Database::connect();
+        $pdo->beginTransaction();
+        try {
+            foreach (array_slice($rows, 0, 1000) as $i => $row) {
+                $rowNumber = $i + 2;
+                $lastName = trim((string) ($row['last_name'] ?? $row['Last Name'] ?? $row['Last name'] ?? ''));
+                $firstName = trim((string) ($row['first_name'] ?? $row['First Name'] ?? $row['First name'] ?? ''));
+                $middleName = trim((string) ($row['middle_name'] ?? $row['Middle Name'] ?? ''));
+                $suffix = trim((string) ($row['suffix'] ?? $row['Suffix'] ?? ''));
+                $sex = ucfirst(mb_strtolower(trim((string) ($row['sex'] ?? $row['Sex'] ?? ''))));
+                $barangay = trim((string) ($row['barangay'] ?? $row['Barangay'] ?? $row['barangay_id'] ?? ''));
+                $address = trim((string) ($row['address_detail'] ?? $row['Address'] ?? $row['Purok / Sitio / Street'] ?? ''));
+                $livelihood = mb_strtolower(trim((string) ($row['livelihood_type'] ?? $row['Livelihood'] ?? 'farmer')));
+                $contact = trim((string) ($row['contact_no'] ?? $row['Contact'] ?? $row['Contact number'] ?? ''));
+                $birthdate = trim((string) ($row['birthdate'] ?? $row['Birthdate'] ?? ''));
+                $rsbsa = trim((string) ($row['rsbsa_no'] ?? $row['RSBSA'] ?? $row['RSBSA number'] ?? ''));
+                $fishr = trim((string) ($row['fishr_no'] ?? $row['FishR'] ?? $row['FishR number'] ?? ''));
+
+                if ($livelihood === 'fisherfolk') {
+                    $livelihood = 'fisherfolk';
+                } elseif ($livelihood === 'both' || str_contains($livelihood, 'farmer') && str_contains($livelihood, 'fisher')) {
+                    $livelihood = 'both';
+                } else {
+                    $livelihood = 'farmer';
+                }
+                $barangayId = ctype_digit($barangay) ? (int) $barangay : ($barangayByName[mb_strtolower($barangay)] ?? 0);
+
+                $rowErrors = [];
+                if ($lastName === '' || mb_strlen($lastName) > 60) $rowErrors[] = 'invalid last name';
+                if ($firstName === '' || mb_strlen($firstName) > 60) $rowErrors[] = 'invalid first name';
+                if (!in_array($sex, ['Male', 'Female'], true)) $rowErrors[] = 'sex must be Male or Female';
+                if (!$barangayId) $rowErrors[] = 'unknown barangay';
+                if ($birthdate !== '' && (DateTime::createFromFormat('Y-m-d', $birthdate) === false || DateTime::createFromFormat('Y-m-d', $birthdate)->format('Y-m-d') !== $birthdate)) {
+                    $rowErrors[] = 'birthdate must be YYYY-MM-DD';
+                }
+                if ($rowErrors) {
+                    $errors[] = 'Row ' . $rowNumber . ': ' . implode(', ', $rowErrors);
+                    $skipped++;
+                    continue;
+                }
+
+                $nameKey = Profile::makeNameKey($lastName, $firstName);
+                $exists = Profile::rawOne(
+                    'SELECT id FROM profiles WHERE name_key = ? AND deleted_at IS NULL LIMIT 1',
+                    [$nameKey]
+                );
+                if ($exists) {
+                    $errors[] = 'Row ' . $rowNumber . ': duplicate profile skipped (' . $lastName . ', ' . $firstName . ')';
+                    $skipped++;
+                    continue;
+                }
+
+                Farmer::insert([
+                    'last_name' => $lastName,
+                    'first_name' => $firstName,
+                    'middle_name' => $middleName ?: null,
+                    'suffix' => $suffix ?: null,
+                    'sex' => $sex,
+                    'birthdate' => $birthdate ?: null,
+                    'contact_no' => $contact ?: null,
+                    'barangay_id' => $barangayId,
+                    'address_detail' => $address ?: null,
+                    'livelihood_type' => $livelihood,
+                    'rsbsa_no' => $rsbsa ?: null,
+                    'fishr_no' => $livelihood === 'farmer' ? null : ($fishr ?: null),
+                    'status' => 'active',
+                    'name_key' => $nameKey,
+                ]);
+                $imported++;
+            }
+            $pdo->commit();
+        } catch (Throwable $e) {
+            $pdo->rollBack();
+            $this->json(['ok' => false, 'message' => 'Import failed: ' . $e->getMessage()], 500);
+        }
+
+        AuditService::log('import', 'profiles', 0, null, ['imported' => $imported, 'skipped' => $skipped], 'Bulk profile import');
+        $this->json([
+            'ok' => true,
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'errors' => array_slice($errors, 0, 100),
+        ]);
+    }
+
     public function store(): void
     {
         $data  = $this->formData();
